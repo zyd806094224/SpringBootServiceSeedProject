@@ -1,0 +1,12 @@
+server:
+  port: 8060
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+spring:
+  application:
+    name: SpringBootServiceSeedProject
+  profiles:
+    active: dev
