@@ -29,6 +29,8 @@ public class SysLogController {
     @DataSource(DataSourceType.LOG)
     @RequestMapping("/list")
     public Result list() {
+        log.info("SysLogController-list");
+        log.debug("SysLogController-list");
         List<SysLogEntity> list = sysLogService.list();
         return Result.success(list);
     }

@@ -82,6 +82,7 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/test")
     public Result testVisitPermission() {
+        log.info("用户权限测试");
         return Result.success();
     }
 
