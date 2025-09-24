@@ -9,13 +9,11 @@ import com.zyd.springbootserviceseedproject.service.UserService;
 import com.zyd.springbootserviceseedproject.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -75,6 +73,16 @@ public class UserController {
         res.put("user", userEntity);
         res.put("token", jwt);
         return Result.success(res);
+    }
+
+    /**
+     * 注解权限测试
+     * @return
+     */
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/test")
+    public Result testVisitPermission() {
+        return Result.success();
     }
 
 }
