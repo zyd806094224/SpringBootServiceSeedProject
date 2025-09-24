@@ -33,3 +33,7 @@ spring:
       testWhileIdle: true
       testOnBorrow: false
       testOnReturn: false
+  redis:
+    host: 127.0.0.1  # 或 localhost
+    port: 6379       # 默认端口
+    database: 0      # 可选，默认是0
