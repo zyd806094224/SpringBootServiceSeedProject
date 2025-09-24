@@ -1,5 +1,7 @@
 package com.zyd.springbootserviceseedproject.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.zyd.springbootserviceseedproject.bean.LoginUser;
 import com.zyd.springbootserviceseedproject.cache.RedisCache;
 import com.zyd.springbootserviceseedproject.common.Result;
@@ -14,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +44,9 @@ public class UserController {
 
     @Autowired
     private JwtTokenManager jwtTokenManager;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @RequestMapping("/list")
     public Result list() {
@@ -83,6 +89,7 @@ public class UserController {
     @GetMapping("/test")
     public Result testVisitPermission() {
         log.info("用户权限测试");
+        restTemplate.postForObject("https://www.baidu.com", JSON.toJSONString(new JSONObject()), String.class);
         return Result.success();
     }
 
