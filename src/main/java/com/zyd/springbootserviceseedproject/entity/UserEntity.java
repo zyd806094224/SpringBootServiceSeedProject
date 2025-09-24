@@ -1,7 +1,6 @@
 package com.zyd.springbootserviceseedproject.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -25,7 +24,6 @@ public class UserEntity implements Serializable {
     private String password;
     private int age;
     private int sex;
-    private int roleId;
     private String phone;
     private String isValid;
 
