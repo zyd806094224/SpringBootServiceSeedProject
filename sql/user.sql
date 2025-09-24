@@ -30,9 +30,9 @@ CREATE TABLE `user` (
   `sex` int DEFAULT NULL COMMENT '性别',
   `phone` varchar(20) DEFAULT NULL COMMENT '电话',
   `role_id` int DEFAULT NULL COMMENT '角色 0超级管理员，1管理员，2普通账号',
-  `is_valid` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Y' COMMENT '是否有效，Y有效，其他无效',
+  `is_valid` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'Y' COMMENT '是否有效，Y有效，其他无效',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of user
