@@ -10,3 +10,9 @@ spring:
     name: SpringBootServiceSeedProject
   profiles:
     active: dev
+
+
+mybatis-plus:
+  configuration:
+    # 开启下划线字段（如 merchant_name）自动转换为驼峰字段（merchantName）
+    map-underscore-to-camel-case: true
