@@ -2,18 +2,19 @@ package com.zyd.springbootserviceseedproject.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zyd.springbootserviceseedproject.bean.LoginUser;
+import com.zyd.springbootserviceseedproject.entity.RoleEntity;
 import com.zyd.springbootserviceseedproject.entity.UserEntity;
 import com.zyd.springbootserviceseedproject.mapper.UserMapper;
+import com.zyd.springbootserviceseedproject.mapper.UserRoleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author zhaoyudong
@@ -27,6 +28,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private UserRoleMapper userRoleMapper;
+
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -38,9 +42,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (Objects.isNull(user)) {
             throw new RuntimeException("用户名或者密码错误");
         }
-        //可以加权限信息
-        List<String> list = new ArrayList<>(Arrays.asList("user", "admin"));
+        //根据用户ID查询角色列表
+        List<RoleEntity> roles = userRoleMapper.selectRolesByUserId(user.getId());
+
+        //把角色信息转换为权限列表
+        List<String> permissions = roles.stream()
+                .map(role -> "ROLE_" + role.getRoleKey().toUpperCase())
+                .collect(Collectors.toList());
+
         //把数据封装成UserDetails返回
-        return new LoginUser(user, list);
+        return new LoginUser(user, permissions);
     }
 }

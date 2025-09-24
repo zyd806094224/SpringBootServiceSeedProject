@@ -27,7 +27,7 @@ import java.util.Arrays;
 /**
  * @author zhaoyudong
  * @version 1.0
- * @description  最新版Spring Security配置类（适配5.7+版本）、移除了已废弃的WebSecurityConfigurerAdapter，采用组件式配置
+ * @description 最新版Spring Security配置类（适配5.7+版本）、移除了已废弃的WebSecurityConfigurerAdapter，采用组件式配置
  * @date 2025/9/24 13:32
  */
 @Configuration
@@ -69,8 +69,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 登录接口允许匿名访问
                         .requestMatchers("/user/login").anonymous()
-                        // 日志接口允许匿名访问
-                        .requestMatchers("/syslog/list").anonymous()
+                        //用户列表接口允许管理员和超级管理员访问
+                        .requestMatchers("/user/list").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        // 日志接口允许超级管理员访问
+                        .requestMatchers("/syslog/list").hasRole("SUPER_ADMIN")
                         // 除上面外的所有请求全部需要鉴权认证
                         .anyRequest().authenticated()
                 )
