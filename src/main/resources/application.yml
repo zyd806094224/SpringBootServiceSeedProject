@@ -7,7 +7,7 @@ server:
       force: true
 spring:
   application:
-    name: SpringBootServiceSeedProject
+    name: service-seed-project
   profiles:
     active: dev
 

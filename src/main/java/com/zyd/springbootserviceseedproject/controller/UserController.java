@@ -2,6 +2,7 @@ package com.zyd.springbootserviceseedproject.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.xxl.job.core.handler.annotation.XxlJob;
 import com.zyd.springbootserviceseedproject.bean.LoginUser;
 import com.zyd.springbootserviceseedproject.cache.RedisCache;
 import com.zyd.springbootserviceseedproject.common.Result;
@@ -91,6 +92,11 @@ public class UserController {
         log.info("用户权限测试");
         restTemplate.postForObject("https://www.baidu.com", JSON.toJSONString(new JSONObject()), String.class);
         return Result.success();
+    }
+
+    @XxlJob(value = "testXXlJob")
+    public void testXXlJob() {
+        log.info("测试XxlJob");
     }
 
 }
