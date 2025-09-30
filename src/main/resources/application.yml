@@ -9,7 +9,7 @@ spring:
   application:
     name: service-seed-project
   profiles:
-    active: dev
+    active: prod
 
 
 mybatis-plus:

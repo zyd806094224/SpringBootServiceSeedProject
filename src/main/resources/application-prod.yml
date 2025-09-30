@@ -5,14 +5,14 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     druid:
       master:
-        url: jdbc:mysql://127.0.0.1:3306/master?useUnicode=true&characterEncoding=utf-8&connectTimeout=15000&socketTimeout=15000
-        username: root
-        password: "000000dong"
+        url: jdbc:mysql://106.15.7.132:3306/master?useUnicode=true&characterEncoding=utf-8&connectTimeout=15000&socketTimeout=15000
+        username: master
+        password: "zhaoyudong@1994"
         enabled: true
       log:
-        url: jdbc:mysql://127.0.0.1:3306/log?useUnicode=true&characterEncoding=utf-8&connectTimeout=15000&socketTimeout=15000
-        username: root
-        password: "000000dong"
+        url: jdbc:mysql://106.15.7.132:3306/log?useUnicode=true&characterEncoding=utf-8&connectTimeout=15000&socketTimeout=15000
+        username: log
+        password: "zhaoyudong@1994"
         enabled: true
       # 初始连接数
       initialSize: 10
@@ -43,12 +43,12 @@ xxl:
   job:
     admin:
       # 多个地址使用,分割
-      addresses: http://192.168.213.9:8061/xxl-job-admin
+      addresses: http://106.15.7.132:8061/xxl-job-admin
       accessToken: default_token
     executor:
       appname: xxl-job-executor-${spring.application.name}
       address:
       ip:
-      port: 9999 #执行器端口
+      port: 9999  #执行器端口
       logpath: ./logs/xxl-job/jobhandler
       logretentiondays: 30
