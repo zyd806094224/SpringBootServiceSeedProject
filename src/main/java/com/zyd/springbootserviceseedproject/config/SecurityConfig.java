@@ -69,10 +69,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 登录接口允许匿名访问
                         .requestMatchers("/user/login").anonymous()
-                        // 文件上传接口允许匿名访问
+                        // 文件上传相关接口允许匿名访问
                         .requestMatchers("/file/**").anonymous()
                         // 文件下载接口允许匿名访问
-                        .requestMatchers("/uploads/**").anonymous()
+                        .requestMatchers("/download/**").anonymous()
                         //用户列表接口允许管理员和超级管理员访问
                         .requestMatchers("/user/list").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         // 日志接口允许超级管理员访问
