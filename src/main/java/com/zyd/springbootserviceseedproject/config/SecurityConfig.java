@@ -69,6 +69,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 登录接口允许匿名访问
                         .requestMatchers("/user/login").anonymous()
+                        // 文件上传接口允许匿名访问
+                        .requestMatchers("/file/**").anonymous()
+                        // 文件下载接口允许匿名访问
+                        .requestMatchers("/uploads/**").anonymous()
                         //用户列表接口允许管理员和超级管理员访问
                         .requestMatchers("/user/list").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         // 日志接口允许超级管理员访问
@@ -109,8 +113,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // 允许的源（根据实际情况调整）
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        // 允许的源（根据实际情况调整 生产环境需要指定域名 不建议用*）
+        //setAllowedOriginPatterns支持模式匹配（类似正则表达式）
+        //更灵活的域名匹配方式
+        //与 allowCredentials(true) 兼容
+        //使用 setAllowedOriginPatterns 时，Spring会在运行时根据实际请求源动态设置 Access-Control-Allow-Origin 头部
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        //setAllowedOrigins  不使用这个是因为当设置为*时，与设置setAllowCredentials(true) 这个冲突
+        //configuration.setAllowedOrigins(Arrays.asList("*"));
         // 允许的请求方法
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // 允许的请求头
