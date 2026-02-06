@@ -86,17 +86,23 @@ public class UserController {
      * 注解权限测试
      * @return
      */
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @GetMapping("/test")
-    public Result testVisitPermission() {
+    public Result testVisitPermission() throws InterruptedException {
         log.info("用户权限测试");
         restTemplate.postForObject("https://www.baidu.com", JSON.toJSONString(new JSONObject()), String.class);
-        return Result.success();
+        Thread.sleep(15000);
+        return Result.success("测试请求数据");
     }
 
     @XxlJob(value = "testXXlJob")
     public void testXXlJob() {
         log.info("测试XxlJob");
+    }
+
+    @GetMapping("/test2")
+    public Result test2() throws InterruptedException {
+        return Result.success("测试2请求数据");
     }
 
 }

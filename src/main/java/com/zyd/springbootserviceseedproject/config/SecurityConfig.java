@@ -69,6 +69,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 登录接口允许匿名访问
                         .requestMatchers("/user/login").anonymous()
+                        .requestMatchers("/user/test").anonymous()
+                        .requestMatchers("/user/test2").anonymous()
                         // 文件上传相关接口允许匿名访问
                         .requestMatchers("/file/**").anonymous()
                         // 文件下载接口允许匿名访问

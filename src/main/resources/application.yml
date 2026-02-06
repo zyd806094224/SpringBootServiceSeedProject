@@ -9,7 +9,7 @@ spring:
   application:
     name: service-seed-project
   profiles:
-    active: prod
+    active: dev
   servlet:
     multipart:
       # 启用文件上传
