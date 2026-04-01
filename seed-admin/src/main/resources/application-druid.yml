@@ -19,7 +19,7 @@ spring:
             # 日志库数据源
             log:
                 # 日志数据源开关/默认关闭
-                enabled: false
+                enabled: true
                 url: jdbc:mysql://localhost:3306/log?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
                 username: root
                 password: 000000dong

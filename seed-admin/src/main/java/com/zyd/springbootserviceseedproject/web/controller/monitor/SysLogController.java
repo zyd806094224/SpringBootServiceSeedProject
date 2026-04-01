@@ -1,5 +1,6 @@
 package com.zyd.springbootserviceseedproject.web.controller.monitor;
 
+import com.zyd.springbootserviceseedproject.common.annotation.Anonymous;
 import com.zyd.springbootserviceseedproject.common.core.domain.Result;
 import com.zyd.springbootserviceseedproject.common.annotation.DataSource;
 import com.zyd.springbootserviceseedproject.common.enums.DataSourceType;
@@ -26,6 +27,7 @@ public class SysLogController {
     @Autowired
     private SysLogService sysLogService;
 
+    @Anonymous
     @DataSource(DataSourceType.LOG)
     @RequestMapping("/list")
     public Result list() {
