@@ -1,164 +1,296 @@
-# SpringBoot服务端种子工程项目
+# SpringBoot 服务端种子工程
 
-这是一个基于Spring Boot 3.3.4构建的企业级后端服务种子工程，包含了常用的企业级开发组件和最佳实践配置。
-
-## 项目概述
-
-本项目是一个完整的企业级后端服务模板，提供了用户管理、权限控制、多数据源支持、定时任务等常见功能模块，可作为新项目的起始模板快速搭建企业级应用。
+基于 Spring Boot 3.5.11 和若依（RuoYi）框架构建的企业级后端服务多模块种子工程，提供用户管理、权限控制、多数据源、定时任务、文件管理、系统监控等开箱即用的功能模块。
 
 ## 技术栈
 
-- **核心框架**: Spring Boot 3.3.4
-- **编程语言**: Java 17
-- **数据库**: MySQL 8.0+
-- **持久层框架**: MyBatis Plus 3.5.6
-- **数据库连接池**: Alibaba Druid 1.2.5
-- **安全框架**: Spring Security + JWT
-- **缓存中间件**: Redis
-- **定时任务**: XXL-JOB 2.4.1
-- **日志框架**: Log4j2
-- **JSON处理**: Fastjson 1.2.83
-- **工具类库**: Hutool 5.8.5
-- **构建工具**: Maven
+| 技术 | 版本 | 说明 |
+|------|------|------|
+| Spring Boot | 3.5.11 | 核心框架 |
+| Java | 17 | 编程语言 |
+| MyBatis Plus | 3.5.6 | 持久层框架 |
+| Druid | 1.2.28 | 数据库连接池 |
+| Spring Security | 6.x | 安全框架 |
+| JWT (JJWT) | 0.11.5 | Token 认证 |
+| Redis (Lettuce) | - | 缓存中间件 |
+| PageHelper | 2.1.1 | MyBatis 分页插件 |
+| SpringDoc | 2.8.16 | Swagger API 文档 |
+| XXL-JOB | 2.4.1 | 分布式任务调度 |
+| FastJSON2 | 2.0.61 | JSON 处理 |
+| Apache POI | 4.1.2 | Excel 导入导出 |
+| Hutool | 5.8.5 | 工具类库 |
+| Log4j2 | - | 日志框架 |
+| Kaptcha | 2.3.3 | 验证码生成 |
+| Lombok | 1.18.36 | 代码简化 |
+
+## 模块说明
+
+```
+SpringBootServiceSeedProject
+├── seed-admin          # Web 服务入口（Controller、启动类、配置文件）
+├── seed-framework      # 框架核心（Security、数据源、AOP、拦截器）
+├── seed-system         # 系统模块（领域模型、Mapper、Service）
+└── seed-common         # 通用工具（注解、异常、工具类、基础实体）
+```
+
+模块依赖关系：`seed-admin` -> `seed-framework` -> `seed-system` -> `seed-common`
+
+### seed-admin
+
+Web 层入口模块，包含所有 REST Controller 和 Spring Boot 启动类。
+
+```
+web/
+├── controller/
+│   ├── common/          # 通用接口（验证码、文件上传下载）
+│   ├── monitor/         # 监控接口（日志、在线用户、缓存、服务器状态）
+│   ├── system/          # 系统管理接口（用户、角色、菜单、部门、字典、配置、通知）
+│   └── tool/            # 测试接口
+├── core/config/         # Swagger 配置
+└── service/             # 文件上传服务
+```
+
+### seed-framework
+
+框架核心层，提供安全认证、数据源管理、AOP 切面等基础设施。
+
+```
+framework/
+├── aspectj/             # AOP 切面（日志、数据范围、限流、防重提交）
+├── config/              # 配置类（Security、Druid、Redis、MyBatis、线程池、Kaptcha）
+├── datasource/          # 动态数据源路由
+├── interceptor/         # 拦截器（限流、防重提交）
+├── manager/             # 异步管理器
+├── security/            # Security 组件（过滤器、认证处理器、用户服务）
+├── web/
+│   ├── domain/          # 服务器监控领域模型
+│   ├── exception/       # 全局异常处理器
+│   └── service/         # 框架级 Service（Token、权限、登录记录）
+```
+
+### seed-system
+
+系统业务模块，包含核心领域模型、数据访问层和业务逻辑层。
+
+```
+system/
+├── domain/              # 实体类和 VO
+├── mapper/              # MyBatis Mapper 接口
+└── service/             # 业务 Service 接口及实现
+```
+
+### seed-common
+
+通用工具模块，被其他所有模块依赖。
+
+```
+common/
+├── annotation/          # 自定义注解（@Log、@DataScope、@DataSource、@RateLimiter 等）
+├── config/              # 通用配置
+├── constant/            # 常量定义
+├── core/
+│   ├── controller/      # BaseController
+│   ├── domain/          # 基础实体、AjaxResult、LoginUser 等
+│   ├── page/            # 分页封装
+│   ├── redis/           # Redis 缓存工具类
+│   └── text/            # 文本工具
+├── enums/               # 枚举类型
+├── exception/           # 自定义异常体系
+├── filter/              # 过滤器（XSS、防盗链、可重复读取请求）
+├── utils/               # 工具类集合
+└── xss/                 # XSS 过滤
+```
 
 ## 核心功能
 
-### 1. 用户认证与授权
-- 基于JWT的无状态认证机制
-- Spring Security实现RBAC权限模型
-- 支持多角色权限控制
-- 密码加密存储（BCrypt）
+### 认证与授权
+- JWT 无状态 Token 认证，Token 存储在 Redis 中支持强制失效
+- Spring Security 实现 RBAC 权限模型，支持 URL 级和方法级（`@PreAuthorize`）权限控制
+- BCrypt 密码加密，密码错误次数限制与账户锁定
+- 验证码登录（支持数学计算型和字符型）
+- `@Anonymous` 注解免认证访问
 
-### 2. 多数据源支持
-- 主从数据源分离（master/log）
-- 基于注解的动态数据源切换
-- 使用Druid连接池进行连接管理
+### 多数据源
+- 主库（master）/ 从库（slave）/ 日志库（log）三数据源分离
+- `@DataSource` 注解动态切换数据源
+- Druid 连接池监控台（`/druid/`）
 
-### 3. 缓存管理
-- Redis集成用于会话管理和业务缓存
-- 自定义Redis缓存工具类
+### 系统管理
+- 用户管理（增删改查、导入导出 Excel、头像上传、密码重置）
+- 角色管理（数据权限分配、菜单权限分配）
+- 菜单管理（树形结构）
+- 部门管理（树形结构）
+- 岗位管理
+- 字典管理
+- 参数配置
+- 通知公告
 
-### 4. 定时任务
-- 集成XXL-JOB分布式任务调度平台
-- 支持可视化任务管理
+### 系统监控
+- 操作日志（`@Log` 注解自动记录）
+- 登录日志
+- 在线用户（支持强退）
+- 缓存监控（Redis Key 管理）
+- 服务器监控（CPU、内存、JVM、磁盘）
 
-### 5. 统一响应格式
-- 所有API接口返回统一的[Result](src/main/java/com/zyd/springbootserviceseedproject/common/Result.java)对象
-- 包含成功/失败状态、消息和数据体
+### 其他功能
+- 文件上传下载（单文件/多文件，类型和大小校验）
+- XSS 攻击防护
+- 防盗链（Referer 过滤）
+- 接口限流（`@RateLimiter`，基于 Redis）
+- 防重提交（`@RepeatSubmit`）
+- 数据范围过滤（`@DataScope`）
+- 敏感数据序列化（`@Sensitive`）
+- Swagger API 文档（`/swagger-ui.html`）
+- 分布式任务调度（XXL-JOB 集成）
 
-### 6. 异常处理
-- 全局异常处理器
-- 自定义认证入口点和权限拒绝处理器
+## 数据库
 
-## 项目结构
+| 文件 | 说明 |
+|------|------|
+| `sql/ry_20260330.sql` | 主数据库初始化脚本（用户、角色、菜单、部门、字典、配置等全套表结构和初始数据） |
+| `sql/sys_log.sql` | 系统日志表（用于 log 数据库） |
 
+需要创建两个数据库：
+- `seed` — 主业务库，导入 `ry_20260330.sql`
+- `log` — 日志库，导入 `sys_log.sql`
+
+默认初始角色：超级管理员（super_admin）、管理员（admin）、普通用户（user）
+
+## API 接口
+
+### 认证
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/login` | 用户登录 |
+| POST | `/register` | 用户注册 |
+| GET | `/getInfo` | 获取当前用户信息及权限 |
+| GET | `/getRouters` | 获取当前用户菜单路由 |
+| GET | `/captchaImage` | 获取验证码 |
+
+### 系统管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| * | `/system/user/**` | 用户管理 |
+| * | `/system/role/**` | 角色管理 |
+| * | `/system/menu/**` | 菜单管理 |
+| * | `/system/dept/**` | 部门管理 |
+| * | `/system/post/**` | 岗位管理 |
+| * | `/system/dict/**` | 字典管理 |
+| * | `/system/config/**` | 参数配置 |
+| * | `/system/notice/**` | 通知公告 |
+
+### 监控
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| * | `/monitor/operlog/**` | 操作日志 |
+| * | `/monitor/logininfor/**` | 登录日志 |
+| * | `/monitor/online/**` | 在线用户 |
+| * | `/monitor/cache/**` | 缓存监控 |
+| * | `/monitor/server` | 服务器状态 |
+
+### 文件操作
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/file/upload` | 单文件上传 |
+| POST | `/file/uploadMultiple` | 多文件上传 |
+| DELETE | `/file/delete/{fileName}` | 删除文件 |
+| GET | `/file/info/{fileName}` | 获取文件信息 |
+| GET | `/file/exists/{fileName}` | 检查文件是否存在 |
+
+### 文档
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- Druid 监控台: `http://localhost:8080/druid/`（账号: seed / 123456）
+
+## 配置文件
+
+所有配置文件位于 `seed-admin/src/main/resources/`：
+
+| 文件 | 说明 |
+|------|------|
+| `application.yml` | 主配置（端口、JWT、Redis、MyBatis、Swagger、XXL-JOB、文件上传等） |
+| `application-druid.yml` | 数据源配置（master/slave/log 三库连接信息、Druid 连接池参数） |
+| `log4j2.xml` | Log4j2 日志配置 |
+| `mybatis/mybatis-config.xml` | MyBatis 全局配置 |
+
+### 关键配置项
+
+```yaml
+# 服务端口
+server.port: 8080
+
+# JWT Token
+token.header: Authorization
+token.secret: abcdefghijklmnopqrstuvwxyz
+token.expireTime: 30  # 分钟
+
+# 文件上传
+spring.servlet.multipart.max-file-size: 10MB
+spring.servlet.multipart.max-request-size: 100MB
+
+# XSS 防护
+xss.enabled: true
 ```
-src/main/java/com/zyd/springbootserviceseedproject/
-├── bean/              # 数据传输对象（DTO）
-├── cache/             # 缓存相关组件
-├── common/            # 通用类（如统一响应结果）
-├── config/            # 配置类
-│   ├── db/            # 多数据源配置
-│   └── ...            # 其他配置类
-├── controller/        # 控制器层
-├── entity/            # 实体类
-├── filter/            # 过滤器
-├── handler/           # 处理器（异常、认证等）
-├── manager/           # 业务管理层
-├── mapper/            # MyBatis Mapper接口
-├── service/           # 服务层
-│   └── impl/          # 服务实现类
-└── utils/             # 工具类
-```
-
-## 数据库设计
-
-项目包含以下核心数据表：
-
-1. [用户表(user)](sql/user.sql) - 存储用户基本信息
-2. [角色表(role)](sql/role.sql) - 角色定义
-3. [用户角色关系表(user_role)](sql/user_role.sql) - 用户与角色的关联关系
-4. [系统日志表(sys_log)](sql/sys_log.sql) - 系统操作日志
-
-初始化数据包含三种角色：
-- 超级管理员(super_admin)
-- 管理员(admin)
-- 普通用户(user)
-
-默认用户：
-- admin/密码加密 - 超级管理员
-- lisi/密码加密 - 管理员
-- zhangsan/123456 - 普通用户
-
-## API接口
-
-### 用户相关
-- `POST /user/login` - 用户登录
-- `GET /user/list` - 获取用户列表（需ADMIN或SUPER_ADMIN权限）
-- `GET /user/test` - 权限测试接口（需USER权限）
-
-### 系统日志相关
-- `GET /syslog/list` - 获取系统日志列表（需SUPER_ADMIN权限）
-
-## 配置说明
-
-### 环境配置
-- [application.yml](src/main/resources/application.yml) - 主配置文件
-- [application-dev.yml](src/main/resources/application-dev.yml) - 开发环境配置
-- [application-prod.yml](src/main/resources/application-prod.yml) - 生产环境配置
-
-### 核心配置项
-1. **数据库配置**：支持主从两个MySQL数据源
-2. **Redis配置**：用于会话管理和缓存
-3. **XXL-JOB配置**：定时任务调度中心地址及执行器配置
-4. **JWT配置**：token过期时间等安全设置
-
-## 安全机制
-
-1. **JWT Token管理**：
-   - 登录成功后生成JWT Token返回给客户端
-   - Token存储在Redis中，支持强制失效
-   - Token黑名单机制防止重复使用
-
-2. **权限控制**：
-   - URL级别访问控制
-   - 方法级别注解权限控制（@PreAuthorize）
-   - RBAC角色权限模型
 
 ## 快速开始
 
-1. 克隆项目到本地
-2. 创建MySQL数据库并导入SQL脚本
-3. 修改[application-dev.yml](src/main/resources/application-dev.yml)中的数据库和Redis连接配置
-4. 启动Redis服务
-5. 运行[SpringBootServiceSeedProjectApplication](src/main/java/com/zyd/springbootserviceseedproject/SpringBootServiceSeedProjectApplication.java)主类
+### 环境要求
+- JDK 17+
+- MySQL 8.0+
+- Redis
+- Maven 3.6+
+- （可选）XXL-JOB 调度中心 — 使用定时任务功能时需要
 
-## 使用示例
+### 启动步骤
 
-### 用户登录
+1. **克隆项目**
+   ```bash
+   git clone <repository-url>
+   cd SpringBootServiceSeedProject
+   ```
+
+2. **初始化数据库**
+   - 创建 `seed` 数据库，导入 `sql/ry_20260330.sql`
+   - 创建 `log` 数据库，导入 `sql/sys_log.sql`
+
+3. **修改配置**
+   - 编辑 `seed-admin/src/main/resources/application-druid.yml`，修改数据库连接地址和密码
+   - 编辑 `seed-admin/src/main/resources/application.yml`，修改 Redis 连接信息（如有需要）
+
+4. **启动 Redis 服务**
+
+5. **构建并启动项目**
+   ```bash
+   mvn clean package -DskipTests
+   cd seed-admin
+   mvn spring-boot:run
+   ```
+
+   或直接运行启动类 `com.zyd.springbootserviceseedproject.SeedApplication`
+
+6. **访问**
+   - API 服务：`http://localhost:8080`
+   - Swagger 文档：`http://localhost:8080/swagger-ui.html`
+
+### 使用示例
+
+**登录获取 Token**
 ```bash
-curl -X POST http://localhost:8060/user/login \
--H "Content-Type: application/json" \
--d '{"no":"admin","password":"password"}'
+curl -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
 ```
 
-### 获取用户列表
+**访问受保护接口**
 ```bash
-curl -X GET http://localhost:8060/user/list \
--H "Authorization: Bearer YOUR_JWT_TOKEN"
+curl http://localhost:8080/system/user/list \
+  -H "Authorization: Bearer <your_token>"
 ```
 
-## 扩展性
+## 扩展指南
 
-该种子工程具备良好的扩展性：
-- 新增业务模块只需按照现有结构添加相应组件
-- 可轻松集成其他第三方服务
-- 支持微服务拆分改造
-- 配置化管理便于不同环境部署
-
-## 注意事项
-
-1. 项目使用Java 17，请确保运行环境兼容
-2. 需要Redis服务支持
-3. 需要MySQL数据库并导入初始化SQL脚本
-4. 如需使用定时任务功能，需要部署XXL-JOB管理平台
+- **新增业务模块**：按照 `seed-system` 的分层结构（domain -> mapper -> service）开发，Controller 放在 `seed-admin` 中
+- **自定义数据源切换**：在 Service 方法上使用 `@DataSource(DataSourceType.SLAVE)` 注解
+- **操作日志记录**：在 Controller 方法上添加 `@Log(title = "模块名", businessType = BusinessType.INSERT)` 注解
+- **接口限流**：在 Controller 方法上添加 `@RateLimiter(count = 10, time = 60)` 注解
+- **API 文档**：Controller 类和方法上使用 SpringDoc 注解（`@Tag`、`@Operation`）自动生成文档
