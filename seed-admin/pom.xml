@@ -49,6 +49,12 @@
             </exclusions>
         </dependency>
 
+        <!-- 工作流模块 -->
+        <dependency>
+            <groupId>com.zyd</groupId>
+            <artifactId>seed-workflow</artifactId>
+        </dependency>
+
         <!-- Log4j2 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

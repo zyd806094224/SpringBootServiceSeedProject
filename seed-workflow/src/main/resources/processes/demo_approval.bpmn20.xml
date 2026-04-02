@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             typeLanguage="http://www.w3.org/2001/XMLSchema"
+             expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://www.zyd.com/workflow">
+
+    <process id="demo_approval" name="示例审批流程" isExecutable="true">
+
+        <!-- 全局执行监听器 -->
+        <extensionElements>
+            <flowable:executionListener event="start" delegateExpression="${workflowGlobalExecutionListener}"/>
+            <flowable:executionListener event="end" delegateExpression="${workflowGlobalExecutionListener}"/>
+        </extensionElements>
+
+        <!-- 开始事件 -->
+        <startEvent id="startEvent" name="发起申请"/>
+
+        <!-- 一级审批（单人审批） -->
+        <userTask id="firstApproval" name="一级审批" flowable:assignee="${wfApprover}">
+            <extensionElements>
+                <flowable:taskListener event="create" delegateExpression="${workflowEventListener}"/>
+                <flowable:taskListener event="complete" delegateExpression="${workflowEventListener}"/>
+                <flowable:taskListener event="assignment" delegateExpression="${workflowEventListener}"/>
+            </extensionElements>
+            <multiInstanceLoopCharacteristics isSequential="false"
+                flowable:collection="${wfApprovers}" flowable:elementVariable="wfApprover">
+                <completionCondition>${nrOfCompletedInstances >= 1}</completionCondition>
+            </multiInstanceLoopCharacteristics>
+        </userTask>
+
+        <!-- 二级审批（会签 - 全部通过） -->
+        <userTask id="secondApproval" name="二级审批" flowable:assignee="${wfApprover}">
+            <extensionElements>
+                <flowable:taskListener event="create" delegateExpression="${workflowEventListener}"/>
+                <flowable:taskListener event="complete" delegateExpression="${workflowEventListener}"/>
+                <flowable:taskListener event="assignment" delegateExpression="${workflowEventListener}"/>
+            </extensionElements>
+            <multiInstanceLoopCharacteristics isSequential="false"
+                flowable:collection="${wfApprovers}" flowable:elementVariable="wfApprover">
+                <completionCondition>${nrOfCompletedInstances == nrOfInstances || wfCounterSignRejected == true}</completionCondition>
+            </multiInstanceLoopCharacteristics>
+        </userTask>
+
+        <!-- 审批通过网关 -->
+        <exclusiveGateway id="approvalGateway" name="审批判断"/>
+
+        <!-- 正常结束 -->
+        <endEvent id="endEvent" name="审批完成"/>
+
+        <!-- 驳回结束 -->
+        <endEvent id="rejectEndEvent" name="已驳回"/>
+
+        <!-- 撤回结束（必须命名为 withdrawEndEvent） -->
+        <endEvent id="withdrawEndEvent" name="已撤回"/>
+
+        <!-- 连线 -->
+        <sequenceFlow id="flow1" sourceRef="startEvent" targetRef="firstApproval"/>
+
+        <sequenceFlow id="flow2" sourceRef="firstApproval" targetRef="secondApproval">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wfApproved == true}]]></conditionExpression>
+        </sequenceFlow>
+
+        <sequenceFlow id="flow3" sourceRef="secondApproval" targetRef="approvalGateway"/>
+
+        <sequenceFlow id="flow4" sourceRef="firstApproval" targetRef="rejectEndEvent">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wfApproved == false}]]></conditionExpression>
+        </sequenceFlow>
+
+        <sequenceFlow id="flow5" sourceRef="approvalGateway" targetRef="endEvent">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wfApproved == true}]]></conditionExpression>
+        </sequenceFlow>
+
+        <sequenceFlow id="flow6" sourceRef="approvalGateway" targetRef="rejectEndEvent">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wfApproved == false}]]></conditionExpression>
+        </sequenceFlow>
+
+    </process>
+
+</definitions>
