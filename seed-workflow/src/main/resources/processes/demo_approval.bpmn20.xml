@@ -20,28 +20,28 @@
         <!-- 开始事件 -->
         <startEvent id="startEvent" name="发起申请"/>
 
-        <!-- 一级审批（单人审批） -->
-        <userTask id="firstApproval" name="一级审批" flowable:assignee="${wfApprover}">
+        <!-- 一级审批（或签 - 一人通过即可） -->
+        <userTask id="firstApproval" name="一级审批" flowable:assignee="${firstApprover}">
             <extensionElements>
                 <flowable:taskListener event="create" delegateExpression="${workflowEventListener}"/>
                 <flowable:taskListener event="complete" delegateExpression="${workflowEventListener}"/>
                 <flowable:taskListener event="assignment" delegateExpression="${workflowEventListener}"/>
             </extensionElements>
             <multiInstanceLoopCharacteristics isSequential="false"
-                flowable:collection="${wfApprovers}" flowable:elementVariable="wfApprover">
+                flowable:collection="${firstApprovers}" flowable:elementVariable="firstApprover">
                 <completionCondition>${nrOfCompletedInstances >= 1}</completionCondition>
             </multiInstanceLoopCharacteristics>
         </userTask>
 
         <!-- 二级审批（会签 - 全部通过） -->
-        <userTask id="secondApproval" name="二级审批" flowable:assignee="${wfApprover}">
+        <userTask id="secondApproval" name="二级审批" flowable:assignee="${secondApprover}">
             <extensionElements>
                 <flowable:taskListener event="create" delegateExpression="${workflowEventListener}"/>
                 <flowable:taskListener event="complete" delegateExpression="${workflowEventListener}"/>
                 <flowable:taskListener event="assignment" delegateExpression="${workflowEventListener}"/>
             </extensionElements>
             <multiInstanceLoopCharacteristics isSequential="false"
-                flowable:collection="${wfApprovers}" flowable:elementVariable="wfApprover">
+                flowable:collection="${secondApprovers}" flowable:elementVariable="secondApprover">
                 <completionCondition>${nrOfCompletedInstances == nrOfInstances || wfCounterSignRejected == true}</completionCondition>
             </multiInstanceLoopCharacteristics>
         </userTask>
@@ -55,7 +55,7 @@
         <!-- 驳回结束 -->
         <endEvent id="rejectEndEvent" name="已驳回"/>
 
-        <!-- 撤回结束（必须命名为 withdrawEndEvent） -->
+        <!-- 撤回结束 -->
         <endEvent id="withdrawEndEvent" name="已撤回"/>
 
         <!-- 连线 -->

@@ -32,6 +32,10 @@ public final class WorkflowConstants {
 
     // ==================== 审批人变量 ====================
     public static final String VAR_APPROVERS = "wfApprovers";
+
+    // ==================== 按节点指定审批人 ====================
+    public static final String VAR_FIRST_APPROVERS = "firstApprovers";
+    public static final String VAR_SECOND_APPROVERS = "secondApprovers";
     public static final String VAR_APPROVER = "wfApprover";
     public static final String VAR_APPLICANT_ID = "applicant_id";
     public static final String VAR_PROCESS_INSTANCE_ID = "processInstanceId";
