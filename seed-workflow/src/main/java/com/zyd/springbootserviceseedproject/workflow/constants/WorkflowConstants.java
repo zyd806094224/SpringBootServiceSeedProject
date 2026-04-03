@@ -17,6 +17,7 @@ public final class WorkflowConstants {
     public static final String VAR_INSTANCE_GROUP_ID = "wfInstanceGroupId";
     public static final String VAR_RECORD_ID = "wfRecordId";
     public static final String VAR_BIZ_TYPE_CODE = "wfBizTypeCode";
+    public static final String VAR_BIZ_KEY = "biz_key";
     public static final String VAR_BIZ_ITEM_CODE = "wfBizItemCode";
 
     // ==================== 审批结果变量 ====================
@@ -33,7 +34,6 @@ public final class WorkflowConstants {
     public static final String VAR_APPROVERS = "wfApprovers";
     public static final String VAR_APPROVER = "wfApprover";
     public static final String VAR_APPLICANT_ID = "applicant_id";
-    public static final String VAR_BIZ_KEY = "biz_key";
     public static final String VAR_PROCESS_INSTANCE_ID = "processInstanceId";
     public static final String VAR_NODE_ID = "wfNodeId";
     public static final String VAR_NODE_NAME = "wfNodeName";
@@ -43,6 +43,7 @@ public final class WorkflowConstants {
     public static final String COMMENT_APPROVE = "approve";
     public static final String COMMENT_REJECT = "reject";
     public static final String COMMENT_REJECT_TO = "rejectTo";
+    public static final String COMMENT_WITHDRAW = "withdraw";
 
     // ==================== 多实例系统变量 ====================
     public static final String NR_OF_COMPLETED_INSTANCES = "nrOfCompletedInstances";

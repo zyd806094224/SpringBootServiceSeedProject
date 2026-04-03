@@ -1,14 +1,19 @@
 package com.zyd.springbootserviceseedproject.workflow.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zyd.springbootserviceseedproject.common.core.domain.AjaxResult;
+import com.zyd.springbootserviceseedproject.common.utils.SecurityUtils;
 import com.zyd.springbootserviceseedproject.workflow.domain.WfApprovalProgressInfo;
 import com.zyd.springbootserviceseedproject.workflow.domain.WfInstanceGroupInfo;
 import com.zyd.springbootserviceseedproject.workflow.domain.WfInstanceInfo;
 import com.zyd.springbootserviceseedproject.workflow.domain.WfRecordSnapshot;
+import com.zyd.springbootserviceseedproject.workflow.domain.WfUserApprovalTaskInfo;
+import com.zyd.springbootserviceseedproject.workflow.enums.WorkFlowTaskStatusEnums;
 import com.zyd.springbootserviceseedproject.workflow.service.IWfApprovalProgressInfoService;
 import com.zyd.springbootserviceseedproject.workflow.service.IWfInstanceGroupInfoService;
 import com.zyd.springbootserviceseedproject.workflow.service.IWfInstanceInfoService;
 import com.zyd.springbootserviceseedproject.workflow.service.IWfRecordSnapshotService;
+import com.zyd.springbootserviceseedproject.workflow.service.IWfUserApprovalTaskInfoService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +41,9 @@ public class WorkflowApprovalCenterController {
 
     @Resource
     private IWfRecordSnapshotService recordSnapshotService;
+
+    @Resource
+    private IWfUserApprovalTaskInfoService userApprovalTaskInfoService;
 
     /**
      * 获取审批进度
@@ -73,5 +81,32 @@ public class WorkflowApprovalCenterController {
     public AjaxResult listBizTypes() {
         List<String> bizTypeNames = instanceGroupInfoService.listDistinctBizTypeNames();
         return AjaxResult.success(bizTypeNames);
+    }
+
+    /**
+     * 查询指定流程实例的待办任务
+     */
+    @GetMapping("/pendingTasks/{processInstanceId}")
+    public AjaxResult getPendingTasks(@PathVariable String processInstanceId) {
+        List<WfUserApprovalTaskInfo> tasks = userApprovalTaskInfoService.list(
+                new LambdaQueryWrapper<WfUserApprovalTaskInfo>()
+                        .eq(WfUserApprovalTaskInfo::getProcessInstanceId, processInstanceId)
+                        .eq(WfUserApprovalTaskInfo::getStatus, WorkFlowTaskStatusEnums.PENDING.getCode())
+                        .orderByDesc(WfUserApprovalTaskInfo::getCreateTime));
+        return AjaxResult.success(tasks);
+    }
+
+    /**
+     * 查询当前用户的待办任务列表
+     */
+    @GetMapping("/myPendingTasks")
+    public AjaxResult getMyPendingTasks() {
+        Long userId = SecurityUtils.getUserId();
+        List<WfUserApprovalTaskInfo> tasks = userApprovalTaskInfoService.list(
+                new LambdaQueryWrapper<WfUserApprovalTaskInfo>()
+                        .eq(WfUserApprovalTaskInfo::getUserId, userId)
+                        .eq(WfUserApprovalTaskInfo::getStatus, WorkFlowTaskStatusEnums.PENDING.getCode())
+                        .orderByDesc(WfUserApprovalTaskInfo::getCreateTime));
+        return AjaxResult.success(tasks);
     }
 }
