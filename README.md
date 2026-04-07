@@ -1,6 +1,6 @@
 # SpringBoot 服务端种子工程
 
-基于 Spring Boot 3.5.11 和若依（RuoYi）框架构建的企业级后端服务多模块种子工程，提供用户管理、权限控制、多数据源、定时任务、文件管理、系统监控等开箱即用的功能模块。
+基于 Spring Boot 3.5.11 和若依（RuoYi）框架构建的企业级后端服务多模块种子工程，提供用户管理、权限控制、多数据源、工作流审批、定时任务、文件管理、系统监控等开箱即用的功能模块。
 
 ## 技术栈
 
@@ -8,7 +8,8 @@
 |------|------|------|
 | Spring Boot | 3.5.11 | 核心框架 |
 | Java | 17 | 编程语言 |
-| MyBatis Plus | 3.5.6 | 持久层框架 |
+| MyBatis Plus | 3.5.7 | 持久层框架 |
+| Flowable | 7.0.1 | 工作流引擎 |
 | Druid | 1.2.28 | 数据库连接池 |
 | Spring Security | 6.x | 安全框架 |
 | JWT (JJWT) | 0.11.5 | Token 认证 |
@@ -30,10 +31,22 @@ SpringBootServiceSeedProject
 ├── seed-admin          # Web 服务入口（Controller、启动类、配置文件）
 ├── seed-framework      # 框架核心（Security、数据源、AOP、拦截器）
 ├── seed-system         # 系统模块（领域模型、Mapper、Service）
+├── seed-workflow       # 工作流审批模块（基于 Flowable）
 └── seed-common         # 通用工具（注解、异常、工具类、基础实体）
 ```
 
-模块依赖关系：`seed-admin` -> `seed-framework` -> `seed-system` -> `seed-common`
+模块依赖关系：
+
+```
+seed-admin
+├── seed-framework
+│   ├── seed-system
+│   │   └── seed-common
+│   └── seed-workflow
+│       └── seed-system
+│           └── seed-common
+└── seed-workflow
+```
 
 ### seed-admin
 
@@ -45,7 +58,8 @@ web/
 │   ├── common/          # 通用接口（验证码、文件上传下载）
 │   ├── monitor/         # 监控接口（日志、在线用户、缓存、服务器状态）
 │   ├── system/          # 系统管理接口（用户、角色、菜单、部门、字典、配置、通知）
-│   └── tool/            # 测试接口
+│   ├── tool/            # 测试接口
+│   └── workflow/        # 工作流审批接口（流程操作、审批中心）
 ├── core/config/         # Swagger 配置
 └── service/             # 文件上传服务
 ```
@@ -75,6 +89,24 @@ framework/
 ```
 system/
 ├── domain/              # 实体类和 VO
+├── mapper/              # MyBatis Mapper 接口
+└── service/             # 业务 Service 接口及实现
+```
+
+### seed-workflow
+
+工作流审批模块，基于 Flowable 7.0.1 实现，提供完整的审批流程管理能力。
+
+```
+workflow/
+├── component/           # 核心组件（WorkflowComponent 流程编排）
+├── config/              # Flowable 引擎配置
+├── constants/           # 流程变量常量定义
+├── controller/          # REST 接口（流程操作、审批中心）
+├── domain/              # 实体类（实例组、实例、任务、进度、快照）
+├── dto/                 # 请求/响应 DTO
+├── enums/               # 枚举（流程状态、任务状态、节点类型、操作类型）
+├── listener/            # 事件监听器（任务事件、流程执行事件）
 ├── mapper/              # MyBatis Mapper 接口
 └── service/             # 业务 Service 接口及实现
 ```
@@ -109,6 +141,16 @@ common/
 - BCrypt 密码加密，密码错误次数限制与账户锁定
 - 验证码登录（支持数学计算型和字符型）
 - `@Anonymous` 注解免认证访问
+
+### 工作流审批
+- 基于 Flowable 7.0.1 引擎，支持 BPMN 2.0 标准流程定义
+- **审批节点类型**：单人审批、顺序会签、并行会签、或签、知会、加签
+- **流程操作**：发起审批、通过、驳回、驳回到指定节点、撤回、转办
+- **实例分组**：支持同一业务的多次审批（驳回后重新发起），通过实例组统一管理
+- **审批中心**：我的待办任务查询、审批进度追踪、历史记录查看
+- **数据快照**：审批发起时自动保存业务数据快照，支持回溯查看
+- **事件驱动**：通过监听器自动同步 Flowable 任务状态到业务层
+- 内置示例流程定义（`demo_approval.bpmn20.xml`）
 
 ### 多数据源
 - 主库（master）/ 从库（slave）/ 日志库（log）三数据源分离
@@ -149,10 +191,21 @@ common/
 |------|------|
 | `sql/ry_20260330.sql` | 主数据库初始化脚本（用户、角色、菜单、部门、字典、配置等全套表结构和初始数据） |
 | `sql/sys_log.sql` | 系统日志表（用于 log 数据库） |
+| `sql/workflow/workflow_init.sql` | 工作流审批模块建表脚本（5 张业务表，Flowable 系统表启动时自动创建） |
 
 需要创建两个数据库：
-- `seed` — 主业务库，导入 `ry_20260330.sql`
+- `seed` — 主业务库，导入 `ry_20260330.sql` 和 `workflow/workflow_init.sql`
 - `log` — 日志库，导入 `sys_log.sql`
+
+### 工作流业务表
+
+| 表名 | 说明 |
+|------|------|
+| `wf_instance_group_info` | 流程实例组信息（聚合同一业务的多次审批） |
+| `wf_instance_info` | 流程实例信息（每次审批生成一条） |
+| `wf_user_approval_task_info` | 用户审批任务（镜像 Flowable 任务到业务层） |
+| `wf_approval_progress_info` | 审批进度信息（审批时间线记录） |
+| `wf_record_snapshot` | 审批数据快照（发起时保存的业务数据 JSON） |
 
 默认初始角色：超级管理员（super_admin）、管理员（admin）、普通用户（user）
 
@@ -166,6 +219,23 @@ common/
 | GET | `/getInfo` | 获取当前用户信息及权限 |
 | GET | `/getRouters` | 获取当前用户菜单路由 |
 | GET | `/captchaImage` | 获取验证码 |
+
+### 工作流审批
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/workflow/process/start` | 发起审批流程 |
+| POST | `/workflow/process/approve` | 审批通过 |
+| POST | `/workflow/process/reject` | 驳回任务 |
+| POST | `/workflow/process/rejectTo` | 驳回到指定节点 |
+| POST | `/workflow/process/withdraw` | 撤回流程 |
+| POST | `/workflow/process/transfer` | 转办任务 |
+| GET | `/workflow/process/history/{processInstanceId}` | 获取流程历史 |
+| GET | `/workflow/process/rejectableNodes/{taskId}` | 获取可驳回节点 |
+| GET | `/workflow/approval/progress/{instanceGroupId}` | 获取审批进度 |
+| GET | `/workflow/approval/snapshot/{processInstanceId}` | 获取数据快照 |
+| GET | `/workflow/approval/bizTypes` | 获取所有业务类型 |
+| GET | `/workflow/approval/pendingTasks/{processInstanceId}` | 获取待办任务 |
+| GET | `/workflow/approval/myPendingTasks` | 获取我的待办任务 |
 
 ### 系统管理
 | 方法 | 路径 | 说明 |
@@ -250,7 +320,7 @@ xss.enabled: true
    ```
 
 2. **初始化数据库**
-   - 创建 `seed` 数据库，导入 `sql/ry_20260330.sql`
+   - 创建 `seed` 数据库，依次导入 `sql/ry_20260330.sql` 和 `sql/workflow/workflow_init.sql`
    - 创建 `log` 数据库，导入 `sql/sys_log.sql`
 
 3. **修改配置**
@@ -287,10 +357,31 @@ curl http://localhost:8080/system/user/list \
   -H "Authorization: Bearer <your_token>"
 ```
 
+**发起审批流程**
+```bash
+curl -X POST http://localhost:8080/workflow/process/start \
+  -H "Authorization: Bearer <your_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"bizType": 1, "processKey": "demo_approval", "bizKey": "ORDER_001", "bizId": 100, "recordId": 1}'
+```
+
+**查看我的待办任务**
+```bash
+curl http://localhost:8080/workflow/approval/myPendingTasks \
+  -H "Authorization: Bearer <your_token>"
+```
+
 ## 扩展指南
 
+### 系统功能扩展
 - **新增业务模块**：按照 `seed-system` 的分层结构（domain -> mapper -> service）开发，Controller 放在 `seed-admin` 中
 - **自定义数据源切换**：在 Service 方法上使用 `@DataSource(DataSourceType.SLAVE)` 注解
 - **操作日志记录**：在 Controller 方法上添加 `@Log(title = "模块名", businessType = BusinessType.INSERT)` 注解
 - **接口限流**：在 Controller 方法上添加 `@RateLimiter(count = 10, time = 60)` 注解
 - **API 文档**：Controller 类和方法上使用 SpringDoc 注解（`@Tag`、`@Operation`）自动生成文档
+
+### 工作流扩展
+- **新增流程定义**：在 `seed-workflow/src/main/resources/processes/` 目录下添加 `.bpmn20.xml` 文件
+- **自定义审批节点**：支持单人审批、会签（顺序/并行）、或签、知会、加签等节点类型
+- **业务接入**：通过 `WorkflowComponent` 统一编排流程，业务模块只需关注发起和结果回调
+- **流程监听**：实现 `WorkflowEventListener` 或 `WorkflowGlobalExecutionListener` 处理流程事件
