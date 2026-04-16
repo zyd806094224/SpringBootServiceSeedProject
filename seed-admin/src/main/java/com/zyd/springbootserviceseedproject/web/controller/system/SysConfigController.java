@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.zyd.springbootserviceseedproject.common.annotation.Anonymous;
 import com.zyd.springbootserviceseedproject.common.annotation.Log;
 import com.zyd.springbootserviceseedproject.common.core.controller.BaseController;
 import com.zyd.springbootserviceseedproject.common.core.domain.AjaxResult;
@@ -69,6 +70,7 @@ public class SysConfigController extends BaseController
     /**
      * 根据参数键名查询参数值
      */
+    @Anonymous
     @GetMapping(value = "/configKey/{configKey}")
     public AjaxResult getConfigKey(@PathVariable String configKey)
     {
