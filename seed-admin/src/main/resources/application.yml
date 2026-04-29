@@ -16,7 +16,7 @@ seed:
 # 开发环境配置
 server:
   # 服务器的HTTP端口
-  port: 8061
+  port: 8066
   servlet:
     # 应用的访问路径
     context-path: /
