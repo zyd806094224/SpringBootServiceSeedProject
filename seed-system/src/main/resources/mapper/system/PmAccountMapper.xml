@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyd.springbootserviceseedproject.system.mapper.PmAccountMapper">
+
+    <resultMap type="PmAccount" id="PmAccountResult">
+        <id     property="accountId"    column="account_id"    />
+        <result property="userId"       column="user_id"       />
+        <result property="title"        column="title"         />
+        <result property="category"     column="category"      />
+        <result property="username"     column="username"      />
+        <result property="password"     column="password"      />
+        <result property="url"          column="url"           />
+        <result property="delFlag"      column="del_flag"      />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateBy"     column="update_by"     />
+        <result property="updateTime"   column="update_time"   />
+        <result property="remark"       column="remark"        />
+    </resultMap>
+
+    <sql id="selectAccountVo">
+        select account_id, user_id, title, category, username, password, url, del_flag,
+               create_by, create_time, update_by, update_time, remark
+          from pm_account
+    </sql>
+
+    <select id="selectAccountById" parameterType="Long" resultMap="PmAccountResult">
+        <include refid="selectAccountVo"/>
+        where account_id = #{accountId} and del_flag = '0'
+    </select>
+
+    <select id="selectAccountList" parameterType="PmAccount" resultMap="PmAccountResult">
+        <include refid="selectAccountVo"/>
+        <where>
+            del_flag = '0'
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="title != null and title != ''">
+                AND title like concat('%', #{title}, '%')
+            </if>
+            <if test="category != null and category != '' and category != 'all'">
+                AND category = #{category}
+            </if>
+            <if test="username != null and username != ''">
+                AND username like concat('%', #{username}, '%')
+            </if>
+        </where>
+        order by account_id desc
+    </select>
+
+    <insert id="insertAccount" parameterType="PmAccount" useGeneratedKeys="true" keyProperty="accountId">
+        insert into pm_account (
+            <if test="userId != null">user_id,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="category != null and category != ''">category,</if>
+            <if test="username != null and username != ''">username,</if>
+            <if test="password != null and password != ''">password,</if>
+            <if test="url != null and url != ''">url,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="userId != null">#{userId},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="category != null and category != ''">#{category},</if>
+            <if test="username != null and username != ''">#{username},</if>
+            <if test="password != null and password != ''">#{password},</if>
+            <if test="url != null and url != ''">#{url},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateAccount" parameterType="PmAccount">
+        update pm_account
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="url != null">url = #{url},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where account_id = #{accountId} and del_flag = '0'
+    </update>
+
+    <update id="deleteAccountById" parameterType="Long">
+        update pm_account set del_flag = '2' where account_id = #{accountId}
+    </update>
+
+    <update id="deleteAccountByIds" parameterType="Long">
+        update pm_account set del_flag = '2' where account_id in
+        <foreach item="accountId" collection="array" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+    </update>
+
+</mapper>
