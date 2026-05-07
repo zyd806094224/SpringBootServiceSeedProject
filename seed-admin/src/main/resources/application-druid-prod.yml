@@ -1,6 +1,5 @@
-# 数据源配置（测试环境）
-# 启动时使用 --spring.profiles.active=druid 加载此配置（测试环境）
-# 生产环境启动使用 --spring.profiles.active=druid-prod 加载生产环境配置
+# 数据源配置（生产环境）
+# 启动时使用 --spring.profiles.active=druid-prod 加载此配置
 spring:
     datasource:
         type: com.alibaba.druid.pool.DruidDataSource
@@ -9,7 +8,7 @@ spring:
             # 主库数据源
             master:
                 url: jdbc:mysql://localhost:3306/seed?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-                username: root
+                username: seed
                 password: 000000dong
             # 从库数据源
             slave:
@@ -23,8 +22,8 @@ spring:
                 # 日志数据源开关/默认关闭
                 enabled: true
                 url: jdbc:mysql://localhost:3306/log?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-                username: root
-                password: 000000dong
+                username: log
+                password: zhaoyudong@1994
             # 初始连接数
             initialSize: 5
             # 最小连接池数量
