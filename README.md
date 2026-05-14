@@ -1,6 +1,10 @@
-# SpringBoot 服务端种子工程
+# Personal Manager - 后端服务
 
-基于 Spring Boot 3.5.11 和若依（RuoYi）框架构建的企业级后端服务多模块种子工程，提供用户管理、权限控制、多数据源、工作流审批、定时任务、文件管理、系统监控等开箱即用的功能模块。
+个人管理系统的后端服务工程，基于 Spring Boot 3.5.11 和若依（RuoYi）框架构建，提供用户管理、权限控制、多数据源、工作流审批、定时任务、文件管理、系统监控等开箱即用的功能模块。当前主要用于支撑账号密码管理业务，后续将持续扩展其他个人管理功能。
+
+**相关工程：**
+- 前端：[Vue3SeedProject](https://github.com/zyd806094224/Vue3SeedProject)
+- 移动端：[RNHybrid](https://github.com/zyd806094224/RNHybrid)
 
 ## 技术栈
 
