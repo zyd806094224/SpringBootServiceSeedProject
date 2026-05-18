@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyd.springbootserviceseedproject.system.mapper.MemoFieldValueMapper">
+
+    <resultMap type="MemoFieldValue" id="MemoFieldValueResult">
+        <id     property="valueId"     column="value_id"     />
+        <result property="memoId"      column="memo_id"      />
+        <result property="fieldId"     column="field_id"     />
+        <result property="fieldValue"  column="field_value"  />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"  column="create_time"  />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"  column="update_time"  />
+    </resultMap>
+
+    <select id="selectFieldValueByMemoId" parameterType="Long" resultMap="MemoFieldValueResult">
+        select value_id, memo_id, field_id, field_value, create_by, create_time, update_by, update_time
+          from memo_field_value
+         where memo_id = #{memoId}
+    </select>
+
+    <insert id="insertFieldValue" parameterType="MemoFieldValue" useGeneratedKeys="true" keyProperty="valueId">
+        insert into memo_field_value (memo_id, field_id, field_value, create_by, create_time)
+        values (#{memoId}, #{fieldId}, #{fieldValue}, #{createBy}, sysdate())
+    </insert>
+
+    <insert id="batchInsertFieldValue" parameterType="java.util.List">
+        insert into memo_field_value (memo_id, field_id, field_value, create_by, create_time)
+        values
+        <foreach item="item" collection="list" separator=",">
+            (#{item.memoId}, #{item.fieldId}, #{item.fieldValue}, #{item.createBy}, sysdate())
+        </foreach>
+    </insert>
+
+    <delete id="deleteFieldValueByMemoId" parameterType="Long">
+        delete from memo_field_value where memo_id = #{memoId}
+    </delete>
+
+    <delete id="deleteFieldValueByMemoIds" parameterType="Long">
+        delete from memo_field_value where memo_id in
+        <foreach item="memoId" collection="array" open="(" separator="," close=")">
+            #{memoId}
+        </foreach>
+    </delete>
+
+</mapper>

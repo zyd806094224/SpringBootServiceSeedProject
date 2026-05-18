@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyd.springbootserviceseedproject.system.mapper.MemoFieldDefMapper">
+
+    <resultMap type="MemoFieldDef" id="MemoFieldDefResult">
+        <id     property="fieldId"       column="field_id"       />
+        <result property="categoryId"    column="category_id"    />
+        <result property="fieldName"     column="field_name"     />
+        <result property="fieldCode"     column="field_code"     />
+        <result property="fieldType"     column="field_type"     />
+        <result property="fieldOptions"  column="field_options"  />
+        <result property="defaultValue"  column="default_value"  />
+        <result property="placeholder"   column="placeholder"    />
+        <result property="isRequired"    column="is_required"    />
+        <result property="sortOrder"     column="sort_order"     />
+        <result property="delFlag"       column="del_flag"       />
+        <result property="createBy"      column="create_by"      />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"      column="update_by"      />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"        column="remark"         />
+    </resultMap>
+
+    <sql id="selectFieldDefVo">
+        select field_id, category_id, field_name, field_code, field_type, field_options,
+               default_value, placeholder, is_required, sort_order, del_flag,
+               create_by, create_time, update_by, update_time, remark
+          from memo_field_def
+    </sql>
+
+    <select id="selectFieldDefById" parameterType="Long" resultMap="MemoFieldDefResult">
+        <include refid="selectFieldDefVo"/>
+        where field_id = #{fieldId} and del_flag = '0'
+    </select>
+
+    <select id="selectFieldDefByCategoryId" parameterType="Long" resultMap="MemoFieldDefResult">
+        <include refid="selectFieldDefVo"/>
+        where category_id = #{categoryId} and del_flag = '0'
+        order by sort_order asc, field_id asc
+    </select>
+
+    <select id="selectFieldDefList" parameterType="MemoFieldDef" resultMap="MemoFieldDefResult">
+        <include refid="selectFieldDefVo"/>
+        <where>
+            del_flag = '0'
+            <if test="categoryId != null">
+                AND category_id = #{categoryId}
+            </if>
+            <if test="fieldName != null and fieldName != ''">
+                AND field_name like concat('%', #{fieldName}, '%')
+            </if>
+            <if test="fieldType != null and fieldType != ''">
+                AND field_type = #{fieldType}
+            </if>
+        </where>
+        order by sort_order asc, field_id asc
+    </select>
+
+    <insert id="insertFieldDef" parameterType="MemoFieldDef" useGeneratedKeys="true" keyProperty="fieldId">
+        insert into memo_field_def (
+            <if test="categoryId != null">category_id,</if>
+            <if test="fieldName != null and fieldName != ''">field_name,</if>
+            <if test="fieldCode != null and fieldCode != ''">field_code,</if>
+            <if test="fieldType != null and fieldType != ''">field_type,</if>
+            <if test="fieldOptions != null and fieldOptions != ''">field_options,</if>
+            <if test="defaultValue != null and defaultValue != ''">default_value,</if>
+            <if test="placeholder != null and placeholder != ''">placeholder,</if>
+            <if test="isRequired != null and isRequired != ''">is_required,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="fieldName != null and fieldName != ''">#{fieldName},</if>
+            <if test="fieldCode != null and fieldCode != ''">#{fieldCode},</if>
+            <if test="fieldType != null and fieldType != ''">#{fieldType},</if>
+            <if test="fieldOptions != null and fieldOptions != ''">#{fieldOptions},</if>
+            <if test="defaultValue != null and defaultValue != ''">#{defaultValue},</if>
+            <if test="placeholder != null and placeholder != ''">#{placeholder},</if>
+            <if test="isRequired != null and isRequired != ''">#{isRequired},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateFieldDef" parameterType="MemoFieldDef">
+        update memo_field_def
+        <set>
+            <if test="fieldName != null and fieldName != ''">field_name = #{fieldName},</if>
+            <if test="fieldCode != null">field_code = #{fieldCode},</if>
+            <if test="fieldType != null and fieldType != ''">field_type = #{fieldType},</if>
+            <if test="fieldOptions != null">field_options = #{fieldOptions},</if>
+            <if test="defaultValue != null">default_value = #{defaultValue},</if>
+            <if test="placeholder != null">placeholder = #{placeholder},</if>
+            <if test="isRequired != null and isRequired != ''">is_required = #{isRequired},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where field_id = #{fieldId} and del_flag = '0'
+    </update>
+
+    <update id="deleteFieldDefById" parameterType="Long">
+        update memo_field_def set del_flag = '2' where field_id = #{fieldId}
+    </update>
+
+    <update id="deleteFieldDefByIds" parameterType="Long">
+        update memo_field_def set del_flag = '2' where field_id in
+        <foreach item="fieldId" collection="array" open="(" separator="," close=")">
+            #{fieldId}
+        </foreach>
+    </update>
+
+    <update id="deleteFieldDefByCategoryIds" parameterType="Long">
+        update memo_field_def set del_flag = '2' where category_id in
+        <foreach item="categoryId" collection="array" open="(" separator="," close=")">
+            #{categoryId}
+        </foreach>
+    </update>
+
+</mapper>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyd.springbootserviceseedproject.system.mapper.MemoInfoMapper">
+
+    <resultMap type="MemoInfo" id="MemoInfoResult">
+        <id     property="memoId"        column="memo_id"        />
+        <result property="userId"        column="user_id"        />
+        <result property="categoryId"    column="category_id"    />
+        <result property="memoName"      column="memo_name"      />
+        <result property="memoDesc"      column="memo_desc"      />
+        <result property="status"        column="status"         />
+        <result property="delFlag"       column="del_flag"       />
+        <result property="createBy"      column="create_by"      />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"      column="update_by"      />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"        column="remark"         />
+        <result property="categoryName"  column="category_name"  />
+    </resultMap>
+
+    <sql id="selectMemoInfoVo">
+        select m.memo_id, m.user_id, m.category_id, m.memo_name, m.memo_desc,
+               m.status, m.del_flag, m.create_by, m.create_time, m.update_by, m.update_time, m.remark,
+               c.category_name
+          from memo_info m
+          left join memo_category c on m.category_id = c.category_id
+    </sql>
+
+    <select id="selectMemoInfoById" parameterType="Long" resultMap="MemoInfoResult">
+        <include refid="selectMemoInfoVo"/>
+        where m.memo_id = #{memoId} and m.del_flag = '0'
+    </select>
+
+    <select id="selectMemoInfoList" parameterType="MemoInfo" resultMap="MemoInfoResult">
+        <include refid="selectMemoInfoVo"/>
+        <where>
+            m.del_flag = '0'
+            <if test="userId != null">
+                AND m.user_id = #{userId}
+            </if>
+            <if test="categoryId != null">
+                AND m.category_id = #{categoryId}
+            </if>
+            <if test="memoName != null and memoName != ''">
+                AND m.memo_name like concat('%', #{memoName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND m.status = #{status}
+            </if>
+        </where>
+        order by m.create_time desc
+    </select>
+
+    <insert id="insertMemoInfo" parameterType="MemoInfo" useGeneratedKeys="true" keyProperty="memoId">
+        insert into memo_info (
+            <if test="userId != null">user_id,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="memoName != null and memoName != ''">memo_name,</if>
+            <if test="memoDesc != null and memoDesc != ''">memo_desc,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="userId != null">#{userId},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="memoName != null and memoName != ''">#{memoName},</if>
+            <if test="memoDesc != null and memoDesc != ''">#{memoDesc},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateMemoInfo" parameterType="MemoInfo">
+        update memo_info
+        <set>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="memoName != null and memoName != ''">memo_name = #{memoName},</if>
+            <if test="memoDesc != null">memo_desc = #{memoDesc},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where memo_id = #{memoId} and del_flag = '0'
+    </update>
+
+    <update id="deleteMemoInfoById" parameterType="Long">
+        update memo_info set del_flag = '2' where memo_id = #{memoId}
+    </update>
+
+    <update id="deleteMemoInfoByIds" parameterType="Long">
+        update memo_info set del_flag = '2' where memo_id in
+        <foreach item="memoId" collection="array" open="(" separator="," close=")">
+            #{memoId}
+        </foreach>
+    </update>
+
+    <update id="deleteMemoInfoByCategoryIds" parameterType="Long">
+        update memo_info set del_flag = '2' where category_id in
+        <foreach item="categoryId" collection="array" open="(" separator="," close=")">
+            #{categoryId}
+        </foreach>
+    </update>
+
+</mapper>
