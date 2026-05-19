@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyd.springbootserviceseedproject.system.mapper.ReminderItemMapper">
+
+    <resultMap type="ReminderItem" id="ReminderItemResult">
+        <id     property="reminderId"        column="reminder_id"        />
+        <result property="userId"            column="user_id"            />
+        <result property="title"             column="title"              />
+        <result property="description"       column="description"        />
+        <result property="category"          column="category"           />
+        <result property="dueDate"           column="due_date"           />
+        <result property="remindBeforeDays"  column="remind_before_days" />
+        <result property="remindTime"        column="remind_time"        />
+        <result property="overdueFrequency"  column="overdue_frequency"  />
+        <result property="status"            column="status"             />
+        <result property="recipientEmail"    column="recipient_email"    />
+        <result property="renewalCount"      column="renewal_count"      />
+        <result property="lastRenewalDate"   column="last_renewal_date"  />
+        <result property="originalDueDate"   column="original_due_date"  />
+        <result property="lastRemindTime"    column="last_remind_time"   />
+        <result property="nextRemindTime"    column="next_remind_time"   />
+        <result property="delFlag"           column="del_flag"           />
+        <result property="createBy"          column="create_by"          />
+        <result property="createTime"        column="create_time"        />
+        <result property="updateBy"          column="update_by"          />
+        <result property="updateTime"        column="update_time"        />
+        <result property="remark"            column="remark"             />
+    </resultMap>
+
+    <sql id="selectReminderItemVo">
+        select reminder_id, user_id, title, description, category, due_date,
+               remind_before_days, remind_time, overdue_frequency, status,
+               recipient_email, renewal_count, last_renewal_date, original_due_date,
+               last_remind_time, next_remind_time, del_flag,
+               create_by, create_time, update_by, update_time, remark
+          from reminder_item
+    </sql>
+
+    <select id="selectReminderItemById" parameterType="Long" resultMap="ReminderItemResult">
+        <include refid="selectReminderItemVo"/>
+        where reminder_id = #{reminderId} and del_flag = '0'
+    </select>
+
+    <select id="selectReminderItemList" parameterType="ReminderItem" resultMap="ReminderItemResult">
+        <include refid="selectReminderItemVo"/>
+        <where>
+            del_flag = '0'
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="title != null and title != ''">
+                AND title like concat('%', #{title}, '%')
+            </if>
+            <if test="category != null and category != '' and category != 'all'">
+                AND category = #{category}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by next_remind_time asc, reminder_id desc
+    </select>
+
+    <select id="selectPendingReminders" resultMap="ReminderItemResult">
+        <include refid="selectReminderItemVo"/>
+        where next_remind_time is not null
+          and next_remind_time &lt;= NOW()
+          and status in ('0', '1', '2')
+          and del_flag = '0'
+        order by next_remind_time asc
+    </select>
+
+    <insert id="insertReminderItem" parameterType="ReminderItem" useGeneratedKeys="true" keyProperty="reminderId">
+        insert into reminder_item (
+            <if test="userId != null">user_id,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="category != null and category != ''">category,</if>
+            <if test="dueDate != null">due_date,</if>
+            <if test="remindBeforeDays != null">remind_before_days,</if>
+            <if test="remindTime != null">remind_time,</if>
+            <if test="overdueFrequency != null">overdue_frequency,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="recipientEmail != null and recipientEmail != ''">recipient_email,</if>
+            <if test="renewalCount != null">renewal_count,</if>
+            <if test="originalDueDate != null">original_due_date,</if>
+            <if test="nextRemindTime != null">next_remind_time,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="userId != null">#{userId},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="category != null and category != ''">#{category},</if>
+            <if test="dueDate != null">#{dueDate},</if>
+            <if test="remindBeforeDays != null">#{remindBeforeDays},</if>
+            <if test="remindTime != null">#{remindTime},</if>
+            <if test="overdueFrequency != null">#{overdueFrequency},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="recipientEmail != null and recipientEmail != ''">#{recipientEmail},</if>
+            <if test="renewalCount != null">#{renewalCount},</if>
+            <if test="originalDueDate != null">#{originalDueDate},</if>
+            <if test="nextRemindTime != null">#{nextRemindTime},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateReminderItem" parameterType="ReminderItem">
+        update reminder_item
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="dueDate != null">due_date = #{dueDate},</if>
+            <if test="remindBeforeDays != null">remind_before_days = #{remindBeforeDays},</if>
+            <if test="remindTime != null">remind_time = #{remindTime},</if>
+            <if test="overdueFrequency != null">overdue_frequency = #{overdueFrequency},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="recipientEmail != null">recipient_email = #{recipientEmail},</if>
+            <if test="renewalCount != null">renewal_count = #{renewalCount},</if>
+            <if test="lastRenewalDate != null">last_renewal_date = #{lastRenewalDate},</if>
+            <if test="originalDueDate != null">original_due_date = #{originalDueDate},</if>
+            <if test="lastRemindTime != null">last_remind_time = #{lastRemindTime},</if>
+            <if test="nextRemindTime != null">next_remind_time = #{nextRemindTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where reminder_id = #{reminderId} and del_flag = '0'
+    </update>
+
+    <update id="deleteReminderItemById" parameterType="Long">
+        update reminder_item set del_flag = '2' where reminder_id = #{reminderId}
+    </update>
+
+    <update id="deleteReminderItemByIds" parameterType="Long">
+        update reminder_item set del_flag = '2' where reminder_id in
+        <foreach item="reminderId" collection="array" open="(" separator="," close=")">
+            #{reminderId}
+        </foreach>
+    </update>
+
+</mapper>
