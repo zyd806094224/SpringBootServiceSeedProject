@@ -98,8 +98,8 @@ spring:
   mail:
     host: smtp.qq.com
     port: 465
-    username: your_qq_email@qq.com
-    password: your_authorization_code
+    username: 806094224@qq.com
+    password: hdklhbedwaqybaji
     protocol: smtp
     default-encoding: UTF-8
     properties:
@@ -196,7 +196,7 @@ referer:
 # 提醒模块配置
 reminder:
   enabled: true
-  default-recipient: your_qq_email@qq.com
+  default-recipient: 806094224@qq.com
   default-remind-before-days: 7
   default-overdue-frequency: 1
   default-remind-time: "09:00"
