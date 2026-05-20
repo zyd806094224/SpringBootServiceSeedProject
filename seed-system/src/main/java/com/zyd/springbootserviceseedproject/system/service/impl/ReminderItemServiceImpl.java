@@ -200,8 +200,9 @@ public class ReminderItemServiceImpl implements IReminderItemService
         {
             item.setStatus(STATUS_PENDING);
         }
-        else if (today.isBefore(dueDate))
+        else if (!today.isAfter(dueDate))
         {
+            // today <= dueDate，到期当天仍算"提醒中"
             item.setStatus(STATUS_REMINDING);
         }
         else
@@ -241,40 +242,64 @@ public class ReminderItemServiceImpl implements IReminderItemService
             // 尚未进入提醒窗口，下次提醒 = remindStartDate + remindTime
             return toDate(LocalDateTime.of(remindStartDate, remindTime));
         }
-        else if (today.isBefore(dueDate))
+        else if (!today.isAfter(dueDate))
         {
-            // 在提醒窗口内，到期前
-            // 如果今天的提醒时间已过，则明天再提醒
+            // 在提醒窗口内（today <= dueDate），到期当天仍在此分支
             LocalDateTime todayRemind = LocalDateTime.of(today, remindTime);
             if (LocalDateTime.now().isAfter(todayRemind))
             {
-                return toDate(LocalDateTime.of(today.plusDays(1), remindTime));
+                // 今天的提醒时间已过，明天再提醒
+                if (today.isBefore(dueDate))
+                {
+                    return toDate(LocalDateTime.of(today.plusDays(1), remindTime));
+                }
+                else
+                {
+                    // 到期当天已过提醒时间，后续进入过期逻辑
+                    return calculateOverdueNextRemindTime(item, today, dueDate, remindTime, overdueFrequency);
+                }
             }
             return toDate(todayRemind);
         }
         else
         {
-            // 已过期
-            if (overdueFrequency <= 0)
-            {
-                return null; // 不重复提醒
-            }
-            // 基于最后提醒时间或到期日计算下次提醒
-            LocalDateTime baseTime = item.getLastRemindTime() != null
-                    ? toLocalDateTime(item.getLastRemindTime())
-                    : LocalDateTime.of(dueDate, remindTime);
-            LocalDateTime nextTime = baseTime.plusDays(overdueFrequency);
-            // 如果计算出的时间还在过去，则从现在开始算
-            if (nextTime.isBefore(LocalDateTime.now()))
-            {
-                nextTime = LocalDateTime.of(today, remindTime);
-                if (LocalDateTime.now().isAfter(nextTime))
-                {
-                    nextTime = LocalDateTime.of(today.plusDays(overdueFrequency), remindTime);
-                }
-            }
-            return toDate(nextTime);
+            return calculateOverdueNextRemindTime(item, today, dueDate, remindTime, overdueFrequency);
         }
+    }
+
+    /**
+     * 计算过期后的下次提醒时间，始终使用配置的remindTime
+     */
+    private Date calculateOverdueNextRemindTime(ReminderItem item, LocalDate today,
+            LocalDate dueDate, LocalTime remindTime, int overdueFrequency)
+    {
+        if (overdueFrequency <= 0)
+        {
+            return null;
+        }
+        // 计算下次提醒日期：基于最后提醒日期 + overdueFrequency天
+        LocalDate nextDate;
+        if (item.getLastRemindTime() != null)
+        {
+            LocalDate lastRemindDate = toLocalDateTime(item.getLastRemindTime()).toLocalDate();
+            nextDate = lastRemindDate.plusDays(overdueFrequency);
+        }
+        else
+        {
+            nextDate = dueDate.plusDays(overdueFrequency);
+        }
+        // 始终使用配置的remindTime，不使用lastRemindTime的时间
+        LocalDateTime nextTime = LocalDateTime.of(nextDate, remindTime);
+        // 如果还在过去，从今天开始算
+        if (nextTime.isBefore(LocalDateTime.now()))
+        {
+            nextTime = LocalDateTime.of(today, remindTime);
+            if (LocalDateTime.now().isAfter(nextTime))
+            {
+                nextTime = LocalDateTime.of(today.plusDays(overdueFrequency), remindTime);
+            }
+        }
+        return toDate(nextTime);
     }
 
     /**
