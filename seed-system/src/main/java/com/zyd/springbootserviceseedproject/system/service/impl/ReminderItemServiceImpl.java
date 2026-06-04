@@ -79,6 +79,8 @@ public class ReminderItemServiceImpl implements IReminderItemService
         }
         // 保存原始到期日期
         reminderItem.setOriginalDueDate(reminderItem.getDueDate());
+        // 根据到期日期计算初始状态
+        updateStatusAfterRemind(reminderItem);
         // 计算下次提醒时间
         reminderItem.setNextRemindTime(calculateNextRemindTime(reminderItem));
         return reminderItemMapper.insertReminderItem(reminderItem);
@@ -93,7 +95,13 @@ public class ReminderItemServiceImpl implements IReminderItemService
         {
             // 合并未传入的字段
             mergeFields(existing, reminderItem);
-            reminderItem.setNextRemindTime(calculateNextRemindTime(reminderItem));
+            // 仅对非终态（已完成/已关闭）的事项重新计算状态和下次提醒时间
+            if (!STATUS_COMPLETED.equals(reminderItem.getStatus())
+                    && !STATUS_CLOSED.equals(reminderItem.getStatus()))
+            {
+                updateStatusAfterRemind(reminderItem);
+                reminderItem.setNextRemindTime(calculateNextRemindTime(reminderItem));
+            }
         }
         return reminderItemMapper.updateReminderItem(reminderItem);
     }
@@ -127,7 +135,8 @@ public class ReminderItemServiceImpl implements IReminderItemService
         item.setDueDate(newDueDate);
         item.setRenewalCount(item.getRenewalCount() + 1);
         item.setLastRenewalDate(new Date());
-        item.setStatus(STATUS_PENDING);
+        // 根据新的到期日期计算状态
+        updateStatusAfterRemind(item);
         item.setNextRemindTime(calculateNextRemindTime(item));
         return reminderItemMapper.updateReminderItem(item);
     }

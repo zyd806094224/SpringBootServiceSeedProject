@@ -126,7 +126,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="lastRenewalDate != null">last_renewal_date = #{lastRenewalDate},</if>
             <if test="originalDueDate != null">original_due_date = #{originalDueDate},</if>
             <if test="lastRemindTime != null">last_remind_time = #{lastRemindTime},</if>
-            <if test="nextRemindTime != null">next_remind_time = #{nextRemindTime},</if>
+            next_remind_time = #{nextRemindTime},
             <if test="remark != null">remark = #{remark},</if>
             <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
             update_time = sysdate()

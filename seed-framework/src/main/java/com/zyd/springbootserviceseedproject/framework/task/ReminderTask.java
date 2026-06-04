@@ -65,6 +65,8 @@ public class ReminderTask
                     if (recipient == null || recipient.isEmpty())
                     {
                         log.warn("提醒事项无收件邮箱, reminderId={}", item.getReminderId());
+                        // 后移下次提醒时间，避免每分钟重复刷日志
+                        reminderItemServiceImpl.updateAfterRemindFailed(item);
                         continue;
                     }
                     // 构建并发送邮件
