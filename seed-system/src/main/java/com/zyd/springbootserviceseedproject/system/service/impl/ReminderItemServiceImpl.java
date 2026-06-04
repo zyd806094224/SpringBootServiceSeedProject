@@ -93,7 +93,7 @@ public class ReminderItemServiceImpl implements IReminderItemService
         {
             // 合并未传入的字段
             mergeFields(existing, reminderItem);
-            reminderItem.setNextRemindTime(calculateNextRemindTime(existing));
+            reminderItem.setNextRemindTime(calculateNextRemindTime(reminderItem));
         }
         return reminderItemMapper.updateReminderItem(reminderItem);
     }
