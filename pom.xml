@@ -236,6 +236,13 @@
                 <version>${seed.version}</version>
             </dependency>
 
+            <!-- IM 即时通讯模块 -->
+            <dependency>
+                <groupId>com.zyd</groupId>
+                <artifactId>seed-im</artifactId>
+                <version>${seed.version}</version>
+            </dependency>
+
             <!-- Flowable工作流引擎（排除mybatis避免与MyBatis-Plus冲突） -->
             <dependency>
                 <groupId>org.flowable</groupId>
@@ -282,6 +289,7 @@
         <module>seed-system</module>
         <module>seed-common</module>
         <module>seed-workflow</module>
+        <module>seed-im</module>
     </modules>
 
     <build>

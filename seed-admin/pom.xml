@@ -55,6 +55,12 @@
             <artifactId>seed-workflow</artifactId>
         </dependency>
 
+        <!-- IM 即时通讯模块 -->
+        <dependency>
+            <groupId>com.zyd</groupId>
+            <artifactId>seed-im</artifactId>
+        </dependency>
+
         <!-- Log4j2 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

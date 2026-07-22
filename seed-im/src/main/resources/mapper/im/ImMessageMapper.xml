@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyd.springbootserviceseedproject.im.mapper.ImMessageMapper">
+
+    <select id="selectHistoryPage" resultType="com.zyd.springbootserviceseedproject.im.domain.ImMessage">
+        SELECT * FROM im_message
+        WHERE conversation_id = #{conversationId}
+          AND del_flag = '0'
+        <if test="lastMsgId != null">
+            AND msg_id &lt; #{lastMsgId}
+        </if>
+        ORDER BY msg_id DESC
+        LIMIT #{size}
+    </select>
+
+</mapper>

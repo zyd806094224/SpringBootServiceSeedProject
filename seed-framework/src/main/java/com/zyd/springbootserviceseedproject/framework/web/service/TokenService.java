@@ -210,6 +210,35 @@ public class TokenService
     }
 
     /**
+     * 解析裸 token（不含 Bearer 前缀）获取登录用户，供 WebSocket 握手鉴权复用。
+     *
+     * 与 [getLoginUser] 的区别：getLoginUser 从 HttpServletRequest header 取 token，
+     * 本方法直接接收已从 URL query 取出的裸 token。
+     *
+     * @param token 裸 token（/login 签发的标准 token，不含 "Bearer " 前缀）
+     * @return LoginUser，解析失败或用户不存在返回 null
+     */
+    public LoginUser parseWebSocketToken(String token)
+    {
+        if (StringUtils.isEmpty(token))
+        {
+            return null;
+        }
+        try
+        {
+            Claims claims = parseToken(token);
+            String uuid = (String) claims.get(Constants.LOGIN_USER_KEY);
+            String userKey = getTokenKey(uuid);
+            return redisCache.getCacheObject(userKey);
+        }
+        catch (Exception e)
+        {
+            log.warn("WS token 解析失败'{}'", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * 获取请求token
      *
      * @param request

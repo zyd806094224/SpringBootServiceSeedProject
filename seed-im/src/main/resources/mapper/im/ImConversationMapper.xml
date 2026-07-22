@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyd.springbootserviceseedproject.im.mapper.ImConversationMapper">
+
+    <resultMap id="ConversationVOMap" type="com.zyd.springbootserviceseedproject.im.domain.vo.ConversationVO">
+        <id     property="conversationId"   column="conversation_id"/>
+        <result property="targetId"         column="target_id"/>
+        <result property="targetName"       column="target_name"/>
+        <result property="targetAvatar"     column="target_avatar"/>
+        <result property="lastMsgContent"   column="last_msg_content"/>
+        <result property="lastMsgTime"      column="last_msg_time"/>
+        <result property="unreadCount"      column="unread_count"/>
+    </resultMap>
+
+    <select id="selectByUserTarget" resultType="com.zyd.springbootserviceseedproject.im.domain.ImConversation">
+        SELECT * FROM im_conversation
+        WHERE user_id = #{userId} AND target_id = #{targetId} AND del_flag = '0'
+        LIMIT 1
+    </select>
+
+    <select id="selectConversationList" resultMap="ConversationVOMap">
+        SELECT c.conversation_id,
+               c.target_id,
+               IFNULL(u.nick_name, u.user_name) AS target_name,
+               u.avatar                          AS target_avatar,
+               c.last_msg_content,
+               c.last_msg_time,
+               c.unread_count
+        FROM im_conversation c
+        LEFT JOIN sys_user u ON u.user_id = c.target_id AND u.del_flag = '0'
+        WHERE c.user_id = #{userId}
+          AND c.del_flag = '0'
+        ORDER BY c.last_msg_time DESC, c.conversation_id DESC
+    </select>
+
+    <update id="incrUnreadCount">
+        UPDATE im_conversation
+        SET unread_count = unread_count + #{count}
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <update id="clearUnreadCount">
+        UPDATE im_conversation
+        SET unread_count = 0
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <update id="updateLastMsg">
+        UPDATE im_conversation
+        SET last_msg_id      = #{lastMsgId},
+            last_msg_content = #{lastMsgContent},
+            last_msg_time    = #{lastMsgTime}
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <select id="selectUnreadTotal" resultType="int">
+        SELECT IFNULL(SUM(unread_count), 0)
+        FROM im_conversation
+        WHERE user_id = #{userId}
+          AND del_flag = '0'
+    </select>
+
+</mapper>

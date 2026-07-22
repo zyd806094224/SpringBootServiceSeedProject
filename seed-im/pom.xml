@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>SpringBootServiceSeedProject</artifactId>
+        <groupId>com.zyd</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>seed-im</artifactId>
+
+    <description>
+        IM 即时通讯模块（WebSocket 单聊 + 会话/消息持久化）
+    </description>
+
+    <dependencies>
+
+        <!-- 系统模块（传递依赖 seed-common：Result/RedisCache/JwtUtil/SecurityUtils/BaseEntity 等） -->
+        <dependency>
+            <groupId>com.zyd</groupId>
+            <artifactId>seed-system</artifactId>
+        </dependency>
+
+        <!-- 框架模块（TokenService：WebSocket 握手复用若依标准 token 解析） -->
+        <dependency>
+            <groupId>com.zyd</groupId>
+            <artifactId>seed-framework</artifactId>
+        </dependency>
+
+        <!-- Spring WebSocket（版本由 spring-boot-dependencies 统一管理） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Fastjson2（WebSocket 帧序列化） -->
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>
