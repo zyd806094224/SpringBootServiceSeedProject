@@ -37,6 +37,9 @@ public class MemoCategory extends BaseEntity
     /** 删除标志（0存在 2删除） */
     private String delFlag;
 
+    /** 备忘录数量（非持久化，列表查询时统计） */
+    private Integer memoCount;
+
     public Long getCategoryId()
     {
         return categoryId;
@@ -110,6 +113,16 @@ public class MemoCategory extends BaseEntity
         this.delFlag = delFlag;
     }
 
+    public Integer getMemoCount()
+    {
+        return memoCount;
+    }
+
+    public void setMemoCount(Integer memoCount)
+    {
+        this.memoCount = memoCount;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
@@ -120,6 +133,7 @@ public class MemoCategory extends BaseEntity
             .append("orderNum", getOrderNum())
             .append("status", getStatus())
             .append("delFlag", getDelFlag())
+            .append("memoCount", getMemoCount())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

@@ -17,6 +17,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy"      column="update_by"      />
         <result property="updateTime"    column="update_time"    />
         <result property="remark"        column="remark"         />
+        <result property="memoCount"     column="memo_count"     />
     </resultMap>
 
     <sql id="selectCategoryVo">
@@ -31,20 +32,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectCategoryList" parameterType="MemoCategory" resultMap="MemoCategoryResult">
-        <include refid="selectCategoryVo"/>
+        select c.category_id, c.user_id, c.category_name, c.category_icon, c.order_num,
+               c.status, c.del_flag, c.create_by, c.create_time, c.update_by, c.update_time, c.remark,
+               (select count(1) from memo_info mi where mi.category_id = c.category_id and mi.del_flag = '0') as memo_count
+          from memo_category c
         <where>
-            del_flag = '0'
+            c.del_flag = '0'
             <if test="userId != null">
-                AND user_id = #{userId}
+                AND c.user_id = #{userId}
             </if>
             <if test="categoryName != null and categoryName != ''">
-                AND category_name like concat('%', #{categoryName}, '%')
+                AND c.category_name like concat('%', #{categoryName}, '%')
             </if>
             <if test="status != null and status != ''">
-                AND status = #{status}
+                AND c.status = #{status}
             </if>
         </where>
-        order by order_num asc, category_id asc
+        order by c.order_num asc, c.category_id asc
     </select>
 
     <select id="checkCategoryNameUnique" resultMap="MemoCategoryResult">
