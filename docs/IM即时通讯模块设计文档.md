@@ -164,9 +164,13 @@ mod_main/src/main/java/com/demo/main/ui/im/
 | 环境 | HTTP | WebSocket |
 |---|---|---|
 | 开发（DEV） | `http://192.168.213.145:8066` | `ws://192.168.213.145:8066/ws` |
-| 生产（PROD） | `http://106.15.7.132:8066` | `ws://106.15.7.132:8066/ws` |
+| 生产（PROD） | `https://106.15.7.132:8443` | `wss://106.15.7.132:8443/ws` |
 
 切换方式：Android 改 BuildConfig（debug/release），iOS 改 Build Configuration。
+
+> **生产环境 TLS**：SpringBoot 只跑 HTTP 8066，TLS 由 Nginx 在 8443 端口终止。
+> 客户端内置自签名证书 pinning（`server_cert.pem`，CN=`106.15.7.132`）。
+> Nginx 需配置 WebSocket 代理头（详见 `阿里云IP自签名HTTPS配置指南.md` 第七章）。
 
 ---
 
