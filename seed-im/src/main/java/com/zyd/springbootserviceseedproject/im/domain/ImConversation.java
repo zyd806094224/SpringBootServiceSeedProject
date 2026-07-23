@@ -11,10 +11,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * IM 会话实体（用户视角）
+ * IM 会话实体（一条会话一条记录，全局唯一）
  *
- * 同一对用户 A/B 产生两条记录：user_id=A,target_id=B 与 user_id=B,target_id=A，
- * 各自维护自己的未读数与会话展示。
+ * 单聊用 min_user_id + max_user_id 保证唯一性（小 ID 在前，大 ID 在后），
+ * 避免 A→B / B→A 产生两条会话。未读数用 unread_count_a / unread_count_b
+ * 分别维护两个参与者的未读数。
  *
  * 注意：不继承 BaseEntity（其 params 字段是 Map 查询参数容器，非数据库列，
  * 与 MyBatis-Plus BaseMapper.insert() 自动映射冲突）。审计字段在此直接声明。
@@ -27,7 +28,7 @@ public class ImConversation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 会话ID */
+    /** 会话ID（全局唯一） */
     @TableId(value = "conversation_id", type = IdType.AUTO)
     private Long conversationId;
 
@@ -35,13 +36,21 @@ public class ImConversation implements Serializable {
     @TableField("type")
     private Integer type;
 
-    /** 会话归属用户ID（当前视角） */
-    @TableField("user_id")
-    private Long userId;
+    /** 参与者A（userId 较小者） */
+    @TableField("min_user_id")
+    private Long minUserId;
 
-    /** 对方用户ID */
-    @TableField("target_id")
-    private Long targetId;
+    /** 参与者B（userId 较大者） */
+    @TableField("max_user_id")
+    private Long maxUserId;
+
+    /** 参与者A的未读消息数 */
+    @TableField("unread_count_a")
+    private Integer unreadCountA;
+
+    /** 参与者B的未读消息数 */
+    @TableField("unread_count_b")
+    private Integer unreadCountB;
 
     /** 最后一条消息ID */
     @TableField("last_msg_id")
@@ -55,9 +64,9 @@ public class ImConversation implements Serializable {
     @TableField("last_msg_time")
     private Date lastMsgTime;
 
-    /** 未读消息数 */
-    @TableField("unread_count")
-    private Integer unreadCount;
+    /** 最后一条消息发送者ID */
+    @TableField("last_msg_sender")
+    private Long lastMsgSender;
 
     /** 状态（0正常 1停用） */
     @TableField("status")

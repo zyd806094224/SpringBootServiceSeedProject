@@ -2,6 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zyd.springbootserviceseedproject.im.mapper.ImMessageMapper">
 
+    <!--
+        历史消息分页：按 conversation_id 单字段查询（唯一会话，不分方向）
+        走索引 idx_conv_time(conversation_id, send_time)
+    -->
     <select id="selectHistoryPage" resultType="com.zyd.springbootserviceseedproject.im.domain.ImMessage">
         SELECT * FROM im_message
         WHERE conversation_id = #{conversationId}

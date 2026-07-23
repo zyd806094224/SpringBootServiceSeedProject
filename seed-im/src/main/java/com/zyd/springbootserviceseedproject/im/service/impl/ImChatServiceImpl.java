@@ -1,10 +1,10 @@
 package com.zyd.springbootserviceseedproject.im.service.impl;
 
 import com.zyd.springbootserviceseedproject.common.exception.ServiceException;
-import com.zyd.springbootserviceseedproject.common.utils.SecurityUtils;
 import com.zyd.springbootserviceseedproject.im.domain.ImConversation;
 import com.zyd.springbootserviceseedproject.im.domain.ImMessage;
 import com.zyd.springbootserviceseedproject.im.domain.vo.ConversationVO;
+import com.zyd.springbootserviceseedproject.im.domain.vo.SimpleUserVO;
 import com.zyd.springbootserviceseedproject.im.enums.ImMsgType;
 import com.zyd.springbootserviceseedproject.im.mapper.ImConversationMapper;
 import com.zyd.springbootserviceseedproject.im.mapper.ImMessageMapper;
@@ -18,7 +18,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * IM 聊天业务实现
+ * IM 聊天业务实现（v2 主流设计）
+ *
+ * 会话表一条会话一条记录（min_user_id + max_user_id 唯一），
+ * 消息表 conversation_id 指向唯一会话，历史查询按 conversation_id 单字段过滤。
  *
  * @author zhaoyudong
  */
@@ -46,24 +49,28 @@ public class ImChatServiceImpl implements IImChatService {
         if (userId.equals(targetId)) {
             throw new ServiceException("不能和自己发起会话");
         }
-        ImConversation conversation = conversationMapper.selectByUserTarget(userId, targetId);
+        // min/max 保证唯一性（小 ID 在前，大 ID 在后）
+        long minUserId = Math.min(userId, targetId);
+        long maxUserId = Math.max(userId, targetId);
+
+        ImConversation conversation = conversationMapper.selectByUsers(minUserId, maxUserId);
         if (conversation != null) {
             return conversation;
         }
-        // 创建当前用户视角的会话
+        // 创建唯一会话
         Date now = new Date();
-        String username = SecurityUtils.getUsername();
-        ImConversation mine = new ImConversation();
-        mine.setType(1);
-        mine.setUserId(userId);
-        mine.setTargetId(targetId);
-        mine.setUnreadCount(0);
-        mine.setStatus("0");
-        mine.setDelFlag("0");
-        mine.setCreateBy(username);
-        mine.setCreateTime(now);
-        conversationMapper.insert(mine);
-        return mine;
+        ImConversation conv = new ImConversation();
+        conv.setType(1);
+        conv.setMinUserId(minUserId);
+        conv.setMaxUserId(maxUserId);
+        conv.setUnreadCountA(0);
+        conv.setUnreadCountB(0);
+        conv.setStatus("0");
+        conv.setDelFlag("0");
+        conv.setCreateBy(String.valueOf(userId));
+        conv.setCreateTime(now);
+        conversationMapper.insert(conv);
+        return conv;
     }
 
     @Override
@@ -82,14 +89,13 @@ public class ImChatServiceImpl implements IImChatService {
         }
         int type = msgType == null ? ImMsgType.TEXT.getValue() : msgType;
 
-        // 1. 确保发送方视角的会话存在（消息挂在发送方会话下）
-        ImConversation senderConv = getOrCreateConversation(senderId, receiverId);
+        // 1. 获取或创建唯一会话（一条记录，不分方向）
+        ImConversation conversation = getOrCreateConversation(senderId, receiverId);
 
-        // 2. 落库消息
+        // 2. 落库消息（conversation_id 指向唯一会话）
         Date now = new Date();
-        String username = String.valueOf(senderId);
         ImMessage message = new ImMessage();
-        message.setConversationId(senderConv.getConversationId());
+        message.setConversationId(conversation.getConversationId());
         message.setSenderId(senderId);
         message.setReceiverId(receiverId);
         message.setMsgType(type);
@@ -97,7 +103,7 @@ public class ImChatServiceImpl implements IImChatService {
         message.setSendTime(now);
         message.setStatus(1);
         message.setDelFlag("0");
-        message.setCreateBy(username);
+        message.setCreateBy(String.valueOf(senderId));
         message.setCreateTime(now);
         messageMapper.insert(message);
 
@@ -105,17 +111,17 @@ public class ImChatServiceImpl implements IImChatService {
         String summary = ImMsgType.of(type) == ImMsgType.IMAGE ? "[图片]" : truncate(content, SUMMARY_MAX_LEN);
         String timeStr = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(now);
 
-        // 4. 更新发送方会话摘要（不加未读）
-        conversationMapper.updateLastMsg(senderConv.getConversationId(), message.getMsgId(), summary, timeStr);
+        // 4. 更新会话最后消息摘要
+        conversationMapper.updateLastMsg(
+                conversation.getConversationId(),
+                message.getMsgId(),
+                summary,
+                timeStr,
+                senderId
+        );
 
-        // 5. 确保接收方会话存在 + 更新摘要 + 累加未读
-        ImConversation receiverConv = conversationMapper.selectByUserTarget(receiverId, senderId);
-        if (receiverConv == null) {
-            receiverConv = buildReceiverConversation(receiverId, senderId, now);
-            conversationMapper.insert(receiverConv);
-        }
-        conversationMapper.updateLastMsg(receiverConv.getConversationId(), message.getMsgId(), summary, timeStr);
-        conversationMapper.incrUnreadCount(receiverConv.getConversationId(), 1);
+        // 5. 累加接收方未读数（只更新一条会话记录的对应字段）
+        conversationMapper.incrUnreadCount(conversation.getConversationId(), receiverId);
 
         return message;
     }
@@ -135,7 +141,7 @@ public class ImChatServiceImpl implements IImChatService {
         if (conversationId == null || userId == null) {
             throw new ServiceException("参数不能为空");
         }
-        conversationMapper.clearUnreadCount(conversationId);
+        conversationMapper.clearUnreadCount(conversationId, userId);
     }
 
     @Override
@@ -146,20 +152,15 @@ public class ImChatServiceImpl implements IImChatService {
         return conversationMapper.selectUnreadTotal(userId);
     }
 
-    // ---- private ----
-
-    private ImConversation buildReceiverConversation(Long receiverId, Long senderId, Date now) {
-        ImConversation conv = new ImConversation();
-        conv.setType(1);
-        conv.setUserId(receiverId);
-        conv.setTargetId(senderId);
-        conv.setUnreadCount(0);
-        conv.setStatus("0");
-        conv.setDelFlag("0");
-        conv.setCreateBy(String.valueOf(receiverId));
-        conv.setCreateTime(now);
-        return conv;
+    @Override
+    public List<SimpleUserVO> getChatUserList(Long userId) {
+        if (userId == null) {
+            return java.util.Collections.emptyList();
+        }
+        return conversationMapper.selectChatUserList(userId);
     }
+
+    // ---- private ----
 
     private String truncate(String text, int maxLen) {
         if (text.length() <= maxLen) {

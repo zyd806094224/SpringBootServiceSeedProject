@@ -5,7 +5,9 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 会话列表项 VO（带对方用户信息）
+ * 会话列表项 VO（从当前用户视角，带对方用户信息）
+ *
+ * 同一条会话记录对不同用户展示不同的 targetId/未读数。
  *
  * @author zhaoyudong
  */
@@ -30,6 +32,6 @@ public class ConversationVO {
     /** 最后一条消息时间 */
     private Date lastMsgTime;
 
-    /** 未读消息数 */
+    /** 当前用户的未读消息数 */
     private Integer unreadCount;
 }

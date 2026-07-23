@@ -12,52 +12,88 @@
         <result property="unreadCount"      column="unread_count"/>
     </resultMap>
 
-    <select id="selectByUserTarget" resultType="com.zyd.springbootserviceseedproject.im.domain.ImConversation">
+    <!-- 按 (minUserId, maxUserId) 查询唯一会话 -->
+    <select id="selectByUsers" resultType="com.zyd.springbootserviceseedproject.im.domain.ImConversation">
         SELECT * FROM im_conversation
-        WHERE user_id = #{userId} AND target_id = #{targetId} AND del_flag = '0'
+        WHERE min_user_id = #{minUserId} AND max_user_id = #{maxUserId} AND del_flag = '0'
         LIMIT 1
     </select>
 
+    <!--
+        会话列表（当前用户视角）：
+        CASE 判断当前用户是 min 还是 max，取出对方的 userId 和自己的未读数。
+        联查 sys_user 取对方昵称/头像。
+    -->
     <select id="selectConversationList" resultMap="ConversationVOMap">
         SELECT c.conversation_id,
-               c.target_id,
+               CASE WHEN c.min_user_id = #{userId} THEN c.max_user_id ELSE c.min_user_id END AS target_id,
                IFNULL(u.nick_name, u.user_name) AS target_name,
                u.avatar                          AS target_avatar,
                c.last_msg_content,
                c.last_msg_time,
-               c.unread_count
+               CASE WHEN c.min_user_id = #{userId} THEN c.unread_count_a ELSE c.unread_count_b END AS unread_count
         FROM im_conversation c
-        LEFT JOIN sys_user u ON u.user_id = c.target_id AND u.del_flag = '0'
-        WHERE c.user_id = #{userId}
+        INNER JOIN sys_user u ON u.user_id = (CASE WHEN c.min_user_id = #{userId} THEN c.max_user_id ELSE c.min_user_id END)
+                              AND u.del_flag = '0'
+        WHERE (c.min_user_id = #{userId} OR c.max_user_id = #{userId})
           AND c.del_flag = '0'
         ORDER BY c.last_msg_time DESC, c.conversation_id DESC
     </select>
 
+    <!--
+        累加未读数：receiverId 是 min 还是 max 决定加哪个字段
+    -->
     <update id="incrUnreadCount">
         UPDATE im_conversation
-        SET unread_count = unread_count + #{count}
+        SET unread_count_a = CASE WHEN min_user_id = #{receiverId} THEN unread_count_a + 1 ELSE unread_count_a END,
+            unread_count_b = CASE WHEN max_user_id = #{receiverId} THEN unread_count_b + 1 ELSE unread_count_b END
         WHERE conversation_id = #{conversationId}
     </update>
 
+    <!--
+        清零未读数：userId 是 min 还是 max 决定清哪个字段
+    -->
     <update id="clearUnreadCount">
         UPDATE im_conversation
-        SET unread_count = 0
+        SET unread_count_a = CASE WHEN min_user_id = #{userId} THEN 0 ELSE unread_count_a END,
+            unread_count_b = CASE WHEN max_user_id = #{userId} THEN 0 ELSE unread_count_b END
         WHERE conversation_id = #{conversationId}
     </update>
 
+    <!-- 更新最后一条消息摘要 -->
     <update id="updateLastMsg">
         UPDATE im_conversation
         SET last_msg_id      = #{lastMsgId},
             last_msg_content = #{lastMsgContent},
-            last_msg_time    = #{lastMsgTime}
+            last_msg_time    = #{lastMsgTime},
+            last_msg_sender  = #{lastMsgSender}
         WHERE conversation_id = #{conversationId}
     </update>
 
+    <!--
+        用户未读总数：用 IF 取对应字段，再 UNION 求和
+        （min_user_id 命中取 unread_count_a，max_user_id 命中取 unread_count_b）
+    -->
     <select id="selectUnreadTotal" resultType="int">
-        SELECT IFNULL(SUM(unread_count), 0)
+        SELECT IFNULL(SUM(
+            CASE WHEN min_user_id = #{userId} THEN unread_count_a ELSE unread_count_b END
+        ), 0)
         FROM im_conversation
-        WHERE user_id = #{userId}
+        WHERE (min_user_id = #{userId} OR max_user_id = #{userId})
           AND del_flag = '0'
+    </select>
+
+    <!-- IM 用户列表：排除自己，只返回启用的用户 -->
+    <select id="selectChatUserList" resultType="com.zyd.springbootserviceseedproject.im.domain.vo.SimpleUserVO">
+        SELECT user_id    AS userId,
+               IFNULL(nick_name, user_name) AS nickName,
+               user_name  AS userName,
+               avatar     AS avatar
+        FROM sys_user
+        WHERE del_flag = '0'
+          AND status = '0'
+          AND user_id != #{userId}
+        ORDER BY user_id ASC
     </select>
 
 </mapper>

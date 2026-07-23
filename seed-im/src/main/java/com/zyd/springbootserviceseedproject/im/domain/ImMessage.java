@@ -13,6 +13,8 @@ import java.util.Date;
 /**
  * IM 消息实体
  *
+ * conversation_id 指向唯一会话（不分方向），查历史只需按 conversation_id 过滤。
+ *
  * 注意：不继承 BaseEntity（其 params 字段是 Map 查询参数容器，非数据库列，
  * 与 MyBatis-Plus BaseMapper.insert() 自动映射冲突）。审计字段在此直接声明。
  *
@@ -24,11 +26,11 @@ public class ImMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 消息ID */
+    /** 消息ID（全局唯一，可用作游标排序） */
     @TableId(value = "msg_id", type = IdType.AUTO)
     private Long msgId;
 
-    /** 会话ID（发送方视角的会话） */
+    /** 会话ID（指向唯一会话，不分方向） */
     @TableField("conversation_id")
     private Long conversationId;
 
