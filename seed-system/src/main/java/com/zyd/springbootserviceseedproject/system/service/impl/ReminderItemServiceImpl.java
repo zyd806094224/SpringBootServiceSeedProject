@@ -48,13 +48,20 @@ public class ReminderItemServiceImpl implements IReminderItemService
     @Override
     public ReminderItem selectReminderItemById(Long reminderId)
     {
-        return reminderItemMapper.selectReminderItemById(reminderId);
+        ReminderItem item = reminderItemMapper.selectReminderItemById(reminderId);
+        refreshStatus(item);
+        return item;
     }
 
     @Override
     public List<ReminderItem> selectReminderItemList(ReminderItem reminderItem)
     {
-        return reminderItemMapper.selectReminderItemList(reminderItem);
+        List<ReminderItem> list = reminderItemMapper.selectReminderItemList(reminderItem);
+        for (ReminderItem item : list)
+        {
+            refreshStatus(item);
+        }
+        return list;
     }
 
     @Override
@@ -218,6 +225,23 @@ public class ReminderItemServiceImpl implements IReminderItemService
         {
             item.setStatus(STATUS_OVERDUE);
         }
+    }
+
+    /**
+     * 查询展示时按当前日期实时重算状态（不落库），
+     * 避免停发事项（如过期频率为0）状态永久停留在"提醒中"
+     */
+    private void refreshStatus(ReminderItem item)
+    {
+        if (item == null || STATUS_COMPLETED.equals(item.getStatus()) || STATUS_CLOSED.equals(item.getStatus()))
+        {
+            return;
+        }
+        if (item.getRemindBeforeDays() == null)
+        {
+            item.setRemindBeforeDays(7);
+        }
+        updateStatusAfterRemind(item);
     }
 
     /**

@@ -57,7 +57,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND category = #{category}
             </if>
             <if test="status != null and status != ''">
-                AND status = #{status}
+                AND (CASE
+                    WHEN status IN ('3', '4') THEN status
+                    WHEN CURDATE() &lt; (due_date - INTERVAL IFNULL(remind_before_days, 7) DAY) THEN '0'
+                    WHEN CURDATE() &lt;= due_date THEN '1'
+                    ELSE '2'
+                END) = #{status}
             </if>
         </where>
         order by next_remind_time asc, reminder_id desc
